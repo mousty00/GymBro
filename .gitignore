@@ -1,0 +1,10 @@
+# Xcode
+DerivedData/
+*.xccheckout
+*.xcworkspace
+*.xcodeproj/project.xcworkspace
+*.xcodeproj/xcuserdata
+*.xcodeproj/project.xcworkspace
+*.swiftpm
+.build/
+.DS_Store
