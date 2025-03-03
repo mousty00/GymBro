@@ -1,17 +1,20 @@
-//
-//  GymBroApp.swift
-//  GymBro
-//
-//  Created by Moustapha Ndiaye on 03/03/25.
-//
 
 import SwiftUI
+import SwiftData
 
 @main
 struct GymBroApp: App {
+    
+    let container: ModelContainer = {
+        let schema = Schema([Workout.self])
+        let container = try! ModelContainer(for: schema, configurations: [])
+        return container
+    }()
+    
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            SplashScreenView()
         }
+        .modelContainer(container)
     }
 }
