@@ -274,9 +274,26 @@ struct WorkoutDetail: View {
             }
     }
     
+    private func sendNotification() {
+            let content = UNMutableNotificationContent()
+            content.title = "\(workout.name) " + NSLocalizedString("Done", comment: "")
+            content.body = NSLocalizedString("Great job! Keep pushing your limits!", comment: "")
+            content.sound = .default
+
+            let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
+            let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
+
+            UNUserNotificationCenter.current().add(request) { error in
+                if let error = error {
+                    print("Error: \(error.localizedDescription)")
+                }
+            }
+        }
+    
     private func finishWorkout() {
         stopTimer()
         isStarted = false
+        sendNotification()
         showCompletionScreen = true
     }
 
