@@ -13,7 +13,7 @@ struct CreateWorkout: View {
     @State private var type: String = NSLocalizedString("Cardio", comment: "Default workout type")
     @State private var selectedDays: [Int] = []
     @State private var notes: String = ""
-    private var textLimit: Int = 30
+    private var textLimit: Int = 160
     
     let types = [
         NSLocalizedString("Cardio", comment: "Cardio workout type"),
