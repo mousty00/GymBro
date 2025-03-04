@@ -136,7 +136,23 @@ struct WorkoutDetail: View {
                     
                     Spacer()
                     
+                    if let workoutNotes = workout.notes, !workoutNotes.isEmpty {
+                        VStack{
+                            Section(header: Text(NSLocalizedString("Notes", comment: "Workout notes header"))
+                                .fontWeight(.semibold)
+                                .font(.system(size: 20))
+                            ) {
+                                Text(workoutNotes)
+                                    .padding()
+                                    .foregroundStyle(colorScheme == .dark ? .white.opacity(0.8) : .primary)
+                                    .background(RoundedRectangle(cornerRadius: 8).fill(Color.gray.opacity(0.1)))
+                            }
+                        }
+                        Spacer()
+                    }
+                    
                     HStack {
+                        
                         Spacer()
                         Button {
                             isMuted.toggle()
@@ -149,6 +165,7 @@ struct WorkoutDetail: View {
                         }
                     }
                     .frame(maxWidth: .infinity)
+                    
                 }
                 .frame(maxHeight: .infinity)
                 .padding()
@@ -305,5 +322,10 @@ struct WorkoutDetail: View {
             completeSet()
         }
     }
+}
+
+#Preview{
+    let fakeWorkout = Workout(name: "Fake Workout", date: Date.now, steps: 2, sets: 2, duration: 1.0, rest: 0.1, type: "HIIT", repeatDays: [1,3,4], notes: "this is a fake workout generated only for demo purpose")
+    WorkoutDetail(workout: fakeWorkout)
 }
 

@@ -12,6 +12,8 @@ struct EditWorkout: View {
     @State private var rest: Double
     @State private var type: String
     @State private var selectedDays: [Int]
+    @State private var notes: String
+    private var textLimit: Int = 30
     
     let types = [
         NSLocalizedString("Cardio", comment: "Cardio workout type"),
@@ -34,6 +36,7 @@ struct EditWorkout: View {
         _rest = State(initialValue: workout.rest)
         _type = State(initialValue: workout.type)
         _selectedDays = State(initialValue: workout.repeatDays)
+        _notes = State(initialValue: workout.notes ?? "")
     }
 
     var body: some View {
@@ -55,6 +58,24 @@ struct EditWorkout: View {
                         Text(selectedDays.isEmpty ? NSLocalizedString("None", comment: "No repeat days") : selectedDays.map { weekdays[$0] }.joined(separator: ", "))
                             .foregroundColor(.gray)
                     }
+                }
+                
+                Section(header: Text("\(NSLocalizedString("Notes", comment: "Notes for workout")) (\(notes.count)/\(textLimit))")) {
+                    TextEditor(text: $notes)
+                        .frame(height: 150)
+                        .padding()
+                        .background(Color.gray.opacity(0.1))
+                        .cornerRadius(8)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(Color.gray, lineWidth: 1)
+                        )
+                        .foregroundColor(.primary)
+                        .onChange(of: notes) { newValue, _ in
+                            if newValue.count > 40 {
+                                notes = String(newValue.prefix(self.textLimit))
+                            }
+                        }
                 }
             }
             .toolbar {
@@ -88,6 +109,7 @@ struct EditWorkout: View {
         workout.rest = rest
         workout.type = type
         workout.repeatDays = selectedDays
+        workout.notes = notes
         
         try? context.save()
         

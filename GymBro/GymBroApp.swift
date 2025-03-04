@@ -5,13 +5,16 @@ import UserNotifications
 @main
 struct GymBroApp: App {
     
-    let container: ModelContainer = {
-        let schema = Schema([Workout.self])
-        let container = try! ModelContainer(for: schema, configurations: [])
-        return container
-    }()
+    let container: ModelContainer
     
     init() {
+        do {
+            let schema = Schema([Workout.self])
+            self.container = try ModelContainer(for: schema, configurations: [])
+        } catch {
+            fatalError("Failed to load the model container: \(error)")
+        }
+        
         requestNotificationPermissions()
     }
     
@@ -31,7 +34,5 @@ struct GymBroApp: App {
             }
         }
     }
-    
-    
 }
 

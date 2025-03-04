@@ -12,8 +12,9 @@ class Workout {
     var rest: Double
     var type: String
     var repeatDays: [Int]
+    var notes: String?
     
-    init(name: String, date: Date, steps: Int, sets: Int, duration: Double, rest: Double, type: String, repeatDays: [Int]) {
+    init(name: String, date: Date, steps: Int, sets: Int, duration: Double, rest: Double, type: String, repeatDays: [Int], notes: String?) {
         self.id = UUID()
         self.name = name
         self.date = date
@@ -23,6 +24,7 @@ class Workout {
         self.rest = rest
         self.type = type
         self.repeatDays = repeatDays
+        self.notes = notes
     }
     
 }

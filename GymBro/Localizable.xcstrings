@@ -7,6 +7,16 @@
     "%@" : {
 
     },
+    "%@ (%lld/%lld)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ (%2$lld/%3$lld)"
+          }
+        }
+      }
+    },
     "%lld" : {
 
     },
@@ -262,6 +272,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No"
+          }
+        }
+      }
+    },
+    "Notes" : {
+      "comment" : "Notes for workout",
+      "extractionState" : "manual",
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Note"
           }
         }
       }

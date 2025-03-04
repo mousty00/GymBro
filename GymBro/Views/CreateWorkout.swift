@@ -12,6 +12,8 @@ struct CreateWorkout: View {
     @State private var rest: Double = 0.0
     @State private var type: String = NSLocalizedString("Cardio", comment: "Default workout type")
     @State private var selectedDays: [Int] = []
+    @State private var notes: String = ""
+    private var textLimit: Int = 30
     
     let types = [
         NSLocalizedString("Cardio", comment: "Cardio workout type"),
@@ -44,6 +46,20 @@ struct CreateWorkout: View {
                             .foregroundColor(.gray)
                     }
                 }
+                
+                Section(header: Text("\(NSLocalizedString("Notes", comment: "Notes for workout")) (\(notes.count)/\(textLimit))")) {
+                    TextEditor(text: $notes)
+                        .frame(height: 150)
+                        .padding()
+                        .background(Color.gray.opacity(0.1))
+                        .cornerRadius(8)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(Color.gray, lineWidth: 1)
+                        )
+                        .foregroundColor(.primary)
+                }
+
             }
             .toolbar {
                 ToolbarItemGroup(placement: .topBarLeading) {
@@ -58,7 +74,7 @@ struct CreateWorkout: View {
                 
                 ToolbarItemGroup(placement: .topBarTrailing) {
                     Button(NSLocalizedString("Save", comment: "Save button")) {
-                        let workout = Workout(name: name, date: date, steps: steps, sets: sets, duration: duration, rest: rest, type: type, repeatDays: selectedDays)
+                        let workout = Workout(name: name, date: date, steps: steps, sets: sets, duration: duration, rest: rest, type: type, repeatDays: selectedDays, notes: notes)
                         context.insert(workout)
                         print("Workout added: \(workout.name)")
                         dismiss()
