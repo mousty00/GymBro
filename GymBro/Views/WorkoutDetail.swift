@@ -1,5 +1,6 @@
 import SwiftUI
 import UserNotifications
+import AVFoundation
 
 struct WorkoutDetail: View {
     
@@ -15,13 +16,17 @@ struct WorkoutDetail: View {
     @State private var currentPhase: String = NSLocalizedString("Workout", comment: "Workout phase")
     @State private var setsRemaining: Int
     @State private var showCompletionScreen: Bool = false
+    @State private var player: AVAudioPlayer?
+    @State private var isPlayingSound: Bool = false
+    @State private var isMuted: Bool = false
 
+    
     init(workout: Workout) {
         self.workout = workout
         _timeRemaining = State(initialValue: workout.duration * 60)
         _setsRemaining = State(initialValue: workout.sets)
     }
-    
+
     var body: some View {
         NavigationStack {
             ZStack {
@@ -130,42 +135,32 @@ struct WorkoutDetail: View {
                     }
                     
                     Spacer()
+                    
+                    HStack {
+                        Spacer()
+                        Button {
+                            isMuted.toggle()
+                        } label: {
+                            Image(systemName: isMuted ? "speaker.slash.circle.fill" : "speaker.circle.fill")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 35, height: 35)
+                                .foregroundStyle(colorScheme == .dark ? .white.opacity(0.6) : .primary)
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
                 }
                 .frame(maxHeight: .infinity)
                 .padding()
                 
                 // Splash screen at the end of the workout
                 if showCompletionScreen {
-                    VStack {
-                        Text("\(workout.name) " + NSLocalizedString("Done", comment: "Workout completed"))
-                            .font(.largeTitle)
-                            .fontWeight(.bold)
-                            .padding()
-                        
-                        Text(NSLocalizedString("Great job! Keep pushing your limits!", comment: "Encouragement message"))
-                            .font(.title2)
-                            .multilineTextAlignment(.center)
-                            .padding()
-                        
-                        Button {
-                            dismiss()
-                        } label: {
-                            Text(NSLocalizedString("Continue", comment: "Continue button"))
-                                .bold()
-                                .padding()
-                                .foregroundColor(.blue)
-                        }
-                        .padding()
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(.black)
-                    .foregroundColor(.white)
-                    .edgesIgnoringSafeArea(.all)
-                    .transition(.opacity)
+                    WorkoutDone(name: workout.name)
                 }
             }
             .onAppear {
                 startBackgroundTask()
+                configureAudioSession()
             }
             .onDisappear {
                 stopBackgroundTask()
@@ -181,6 +176,17 @@ struct WorkoutDetail: View {
                 timeRemaining -= 0.1
                 let totalDuration = isResting ? workout.rest * 60 : workout.duration * 60
                 progress = timeRemaining / totalDuration
+                
+                if timeRemaining < 0 {
+                    timeRemaining = 0
+                }
+                
+                if timeRemaining <= 3 && !self.isPlayingSound {
+                    if !isMuted {
+                        playSound()
+                        self.isPlayingSound = true
+                    }
+                }
             } else {
                 nextPhase()
             }
@@ -193,6 +199,7 @@ struct WorkoutDetail: View {
     }
     
     private func nextPhase() {
+        isPlayingSound = false
         if currentPhase == NSLocalizedString("Workout", comment: "Workout phase") {
             startRestTimer()
         } else {
@@ -229,38 +236,47 @@ struct WorkoutDetail: View {
     @State private var backgroundTaskID: UIBackgroundTaskIdentifier = UIBackgroundTaskIdentifier.invalid
     
     func startBackgroundTask() {
-            backgroundTaskID = UIApplication.shared.beginBackgroundTask(expirationHandler: {
-                UIApplication.shared.endBackgroundTask(self.backgroundTaskID)
-                self.backgroundTaskID = UIBackgroundTaskIdentifier.invalid
-            })
-        }
+        backgroundTaskID = UIApplication.shared.beginBackgroundTask(expirationHandler: {
+            UIApplication.shared.endBackgroundTask(self.backgroundTaskID)
+            self.backgroundTaskID = UIBackgroundTaskIdentifier.invalid
+        })
+    }
 
     func stopBackgroundTask() {
-            if backgroundTaskID != UIBackgroundTaskIdentifier.invalid {
-                UIApplication.shared.endBackgroundTask(backgroundTaskID)
-                backgroundTaskID = UIBackgroundTaskIdentifier.invalid
-            }
+        if backgroundTaskID != UIBackgroundTaskIdentifier.invalid {
+            UIApplication.shared.endBackgroundTask(backgroundTaskID)
+            backgroundTaskID = UIBackgroundTaskIdentifier.invalid
         }
-    func sendNotification() {
-        let content = UNMutableNotificationContent()
-        content.title = "\(workout.name) " + NSLocalizedString("Done", comment: "")
-        content.body = NSLocalizedString("Great job! Keep pushing your limits!", comment: "")
-        content.sound = .default
-
-        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
-        let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
-
-        UNUserNotificationCenter.current().add(request) { error in
-            if let error = error {
-                print("Error: \(error.localizedDescription)")
-            }
+    }
+    
+    func configureAudioSession() {
+        do {
+            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
+            try AVAudioSession.sharedInstance().setActive(true)
+        } catch {
+            print("Error configuring audio session: \(error)")
         }
+    }
+    
+    private func playSound() {
+        let soundName: String = "countdown.mp3"
+        
+        
+            if let url = Bundle.main.url(forResource: soundName, withExtension: nil) {
+                do {
+                    player = try AVAudioPlayer(contentsOf: url)
+                    player?.play()
+                } catch {
+                    print("Error playing sound: \(error)")
+                }
+            } else {
+                print("Sound file not found!")
+            }
     }
     
     private func finishWorkout() {
         stopTimer()
         isStarted = false
-        sendNotification()
         showCompletionScreen = true
     }
 
