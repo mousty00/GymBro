@@ -92,10 +92,21 @@ struct WorkoutList: View {
     }
 
     private func deleteWorkout(at offsets: IndexSet) {
-        for index in offsets {
-            context.delete(filteredWorkouts[index])
-        }
-    }
+           let calendar = Calendar.current
+           let selectedWeekday = calendar.component(.weekday, from: selectedDate) - 1
+           
+           for index in offsets {
+               let workout = filteredWorkouts[index]
+               
+               if let dayIndex = workout.repeatDays.firstIndex(of: selectedWeekday) {
+                   workout.repeatDays.remove(at: dayIndex)
+               }
+               
+               if workout.repeatDays.isEmpty {
+                   context.delete(workout)
+               }
+           }
+       }
     
     private func deleteAllWorkouts() {
         for workout in filteredWorkouts {

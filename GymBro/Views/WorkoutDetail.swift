@@ -27,10 +27,9 @@ struct WorkoutDetail: View {
                 VStack {
                     HStack {
                         VStack(alignment: .leading, spacing: 10){
-
-                        Text(workout.name)
-                            .fontWeight(.semibold)
-                            .font(.system(size: 40))
+                            Text(workout.name)
+                                .fontWeight(.semibold)
+                                .font(.system(size: 40))
                             Text("Type:  \(workout.type)")
                                 .foregroundStyle(colorScheme == .dark ? .white.opacity(0.6) : .primary)
                         }
@@ -51,15 +50,17 @@ struct WorkoutDetail: View {
                         }())
                         .resizable()
                         .frame(width: 40, height: 40)
-                        
-
                     }
                     .padding()
                     
                     VStack(alignment: .center, spacing: 20) {
                         HStack {
                             VStack(alignment: .leading) {
-                                Text(String(format: "%.0f:%02.0f", floor(timeRemaining / 60), timeRemaining.truncatingRemainder(dividingBy: 60)))
+                                let minutes = floor(timeRemaining / 60)
+                                let seconds = timeRemaining.truncatingRemainder(dividingBy: 60)
+                                let displaySeconds = seconds >= 59.5 ? 59 : seconds
+
+                                Text(String(format: "%.0f:%02.0f", minutes, displaySeconds))
                                     .font(.system(size: 50))
                                     .fontWeight(.semibold)
                                     .foregroundStyle(colorScheme == .dark ? .white.opacity(0.6) : .primary)
@@ -219,30 +220,26 @@ struct WorkoutDetail: View {
     }
     
     private func deleteWorkout() {
-        if let context = workout.modelContext {
-            context.delete(workout)
+        let calendar = Calendar.current
+        let todayWeekday = calendar.component(.weekday, from: Date()) - 1
+
+        if let index = workout.repeatDays.firstIndex(of: todayWeekday) {
+            workout.repeatDays.remove(at: index)
+            if workout.repeatDays.isEmpty {
+                if let context = workout.modelContext {
+                    context.delete(workout)
+                }
+            }
         }
     }
     
     private func finishWorkout() {
         stopTimer()
         isStarted = false
-
-        let calendar = Calendar.current
-        let todayWeekday = calendar.component(.weekday, from: Date()) - 1
-
-        if let index = workout.repeatDays.firstIndex(of: todayWeekday) {
-            workout.repeatDays.remove(at: index)
-
-            if workout.repeatDays.isEmpty {
-                deleteWorkout()
-            }
-        }
-        
+        deleteWorkout()
         showCompletionScreen = true
     }
 
-    
     private func skipPhase() {
         stopTimer()
         if currentPhase == "Workout" {
