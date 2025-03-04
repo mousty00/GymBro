@@ -30,6 +30,12 @@
         }
       }
     },
+    "%lld min" : {
+
+    },
+    "%lld sec" : {
+
+    },
     "Add Workout" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -237,6 +243,17 @@
         }
       }
     },
+    "Minutes" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Minuti"
+          }
+        }
+      }
+    },
     "New Workout" : {
       "comment" : "New workout screen title",
       "localizations" : {
@@ -346,6 +363,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Salva"
+          }
+        }
+      }
+    },
+    "Seconds" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Secondi"
           }
         }
       }

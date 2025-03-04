@@ -1,101 +1,72 @@
 import SwiftUI
-import UserNotifications
-import AVFoundation
+import AVFAudio
 
 struct WorkoutDetail: View {
     
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.dismiss) private var dismiss
-
-    let workout: Workout
-    @State private var isStarted: Bool = false
-    @State private var progress: Double = 1.0
-    @State private var timeRemaining: Double
-    @State private var timer: Timer? = nil
-    @State private var isResting: Bool = false
-    @State private var currentPhase: String = NSLocalizedString("Workout", comment: "Workout phase")
-    @State private var setsRemaining: Int
-    @State private var showCompletionScreen: Bool = false
-    @State private var player: AVAudioPlayer?
-    @State private var isPlayingSound: Bool = false
-    @State private var isMuted: Bool = false
-
+    @ObservedObject var viewModel: WorkoutViewModel
     
     init(workout: Workout) {
-        self.workout = workout
-        _timeRemaining = State(initialValue: workout.duration * 60)
-        _setsRemaining = State(initialValue: workout.sets)
+        self.viewModel = WorkoutViewModel(workout: workout)
     }
-
+    
     var body: some View {
         NavigationStack {
             ZStack {
                 VStack {
                     HStack {
                         VStack(alignment: .leading, spacing: 10){
-                            Text(workout.name)
+                            Text(viewModel.workout.name)
                                 .fontWeight(.semibold)
                                 .font(.system(size: 40))
-                            Text(NSLocalizedString("Type", comment: "Workout type") + ": \(workout.type)")
+                            Text(NSLocalizedString("Type", comment: "Workout type") + ": \(viewModel.workout.type)")
                                 .foregroundStyle(colorScheme == .dark ? .white.opacity(0.6) : .primary)
                         }
                         Spacer()
-                        Image(systemName: {
-                            switch workout.type.lowercased() {
-                            case "yoga":
-                                return "figure.yoga"
-                            case "strength":
-                                return "figure.strengthtraining.traditional"
-                            case "cardio":
-                                return "figure.run"
-                            case "hiit":
-                                return "bolt.fill"
-                            default:
-                                return "dumbbell"
-                            }
-                        }())
-                        .resizable()
-                        .frame(width: 40, height: 40)
+                        Image(systemName: workoutImageName)
+                            .resizable()
+                            .frame(width: 40, height: 40)
                     }
                     .padding()
                     
                     VStack(alignment: .center, spacing: 20) {
                         HStack {
                             VStack(alignment: .leading) {
-                                let minutes = floor(timeRemaining / 60)
-                                let seconds = timeRemaining.truncatingRemainder(dividingBy: 60)
-                                let displaySeconds = seconds >= 59.5 ? 59 : seconds
+                            
+                                let minutes = viewModel.timeRemaining / 60
+                                let seconds = viewModel.timeRemaining % 60
 
-                                Text(String(format: "%.0f:%02.0f", minutes, displaySeconds))
+                                Text(String(format: "%02d:%02d", minutes, seconds))
                                     .font(.system(size: 50))
                                     .fontWeight(.semibold)
                                     .foregroundStyle(colorScheme == .dark ? .white.opacity(0.6) : .primary)
-                                Text(currentPhase)
+                                Text(viewModel.currentPhase)
                                     .foregroundStyle(colorScheme == .dark ? .white.opacity(0.6) : .primary)
                             }
                             
                             Spacer()
                             
                             Button {
-                                isStarted.toggle()
-                                if isStarted {
-                                    startTimer()
+                                viewModel.isStarted.toggle()
+                                if viewModel.isStarted {
+                                    viewModel.startTimer()
                                 } else {
-                                    stopTimer()
+                                    viewModel.stopTimer()
                                 }
                             } label: {
                                 ZStack {
                                     Circle()
-                                        .trim(from: 0.0, to: progress)
+                                        .trim(from: 0.0, to: viewModel.progress)
                                         .stroke(style: StrokeStyle(lineWidth: 6, lineCap: .round, lineJoin: .round))
-                                        .foregroundColor(currentPhase == NSLocalizedString("Workout", comment: "Workout phase") ? (isStarted ? .orange : .green) : .red)
+                                        .foregroundColor(viewModel.currentPhase == NSLocalizedString("Workout", comment: "Workout phase") ? (viewModel.isStarted ? .orange : .green) : .red)
                                         .rotationEffect(.degrees(-90))
-                                        .animation(.linear(duration: 1), value: progress)
+                                        .animation(.linear(duration: 1), value: viewModel.progress)
                                     
-                                    Image(systemName: isStarted ? "pause" : "play.fill")
+                                    Image(systemName: viewModel.isStarted ? "pause" : "play.fill")
                                         .resizable()
                                         .frame(width: 30, height: 30, alignment: .center)
-                                        .foregroundStyle(currentPhase == NSLocalizedString("Workout", comment: "Workout phase") ? (isStarted ? .orange : .green) : .red)
+                                        .foregroundStyle(viewModel.currentPhase == NSLocalizedString("Workout", comment: "Workout phase") ? (viewModel.isStarted ? .orange : .green) : .red)
                                 }
                             }
                             .frame(width: 100, height: 100)
@@ -104,7 +75,7 @@ struct WorkoutDetail: View {
                     }
                     
                     Button {
-                        skipPhase()
+                        viewModel.skipPhase()
                     } label: {
                         Text(NSLocalizedString("Skip", comment: "Skip phase"))
                             .font(.system(size: 20))
@@ -116,7 +87,7 @@ struct WorkoutDetail: View {
                     
                     HStack(alignment: .center) {
                         VStack(alignment: .center){
-                            Text("\(workout.steps)")
+                            Text("\(viewModel.workout.steps)")
                                 .fontWeight(.semibold)
                                 .font(.system(size: 40))
                             Text(NSLocalizedString("Reps", comment: "Repetitions"))
@@ -125,7 +96,7 @@ struct WorkoutDetail: View {
                         }
                         Text("X")
                         VStack(alignment: .center){
-                            Text("\(setsRemaining)")
+                            Text("\(viewModel.setsRemaining)")
                                 .fontWeight(.semibold)
                                 .font(.system(size: 40))
                             Text(NSLocalizedString("Sets", comment: "Workout sets"))
@@ -136,7 +107,7 @@ struct WorkoutDetail: View {
                     
                     Spacer()
                     
-                    if let workoutNotes = workout.notes, !workoutNotes.isEmpty {
+                    if let workoutNotes = viewModel.workout.notes, !workoutNotes.isEmpty {
                         VStack{
                             Section(header: Text(NSLocalizedString("Notes", comment: "Workout notes header"))
                                 .fontWeight(.semibold)
@@ -155,9 +126,9 @@ struct WorkoutDetail: View {
                         
                         Spacer()
                         Button {
-                            isMuted.toggle()
+                            viewModel.toggleMute()
                         } label: {
-                            Image(systemName: isMuted ? "speaker.slash.circle.fill" : "speaker.circle.fill")
+                            Image(systemName: viewModel.isMuted ? "speaker.slash.circle.fill" : "speaker.circle.fill")
                                 .resizable()
                                 .aspectRatio(contentMode: .fit)
                                 .frame(width: 35, height: 35)
@@ -170,99 +141,28 @@ struct WorkoutDetail: View {
                 .frame(maxHeight: .infinity)
                 .padding()
                 
-                // Splash screen at the end of the workout
-                if showCompletionScreen {
-                    WorkoutDone(name: workout.name)
+                if viewModel.showCompletionScreen {
+                    WorkoutDone(name: viewModel.workout.name)
                 }
             }
             .onAppear {
-                startBackgroundTask()
                 configureAudioSession()
             }
-            .onDisappear {
-                stopBackgroundTask()
-            }
         }
     }
     
-    private func startTimer() {
-        stopTimer()
-        
-        timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { _ in
-            if timeRemaining > 0 {
-                timeRemaining -= 0.1
-                let totalDuration = isResting ? workout.rest * 60 : workout.duration * 60
-                progress = timeRemaining / totalDuration
-                
-                if timeRemaining < 0 {
-                    timeRemaining = 0
-                }
-                
-                if timeRemaining <= 3 && !self.isPlayingSound {
-                    if !isMuted {
-                        playSound()
-                        self.isPlayingSound = true
-                    }
-                }
-            } else {
-                nextPhase()
-            }
-        }
-    }
-    
-    private func stopTimer() {
-        timer?.invalidate()
-        timer = nil
-    }
-    
-    private func nextPhase() {
-        isPlayingSound = false
-        if currentPhase == NSLocalizedString("Workout", comment: "Workout phase") {
-            startRestTimer()
-        } else {
-            completeSet()
-        }
-    }
-    
-    private func startWorkoutTimer() {
-        currentPhase = NSLocalizedString("Workout", comment: "Workout phase")
-        isResting = false
-        timeRemaining = workout.duration * 60
-        progress = 1.0
-        startTimer()
-    }
-    
-    private func startRestTimer() {
-        currentPhase = NSLocalizedString("Rest", comment: "Rest phase")
-        isResting = true
-        timeRemaining = workout.rest * 60
-        progress = 1.0
-        startTimer()
-    }
-    
-    private func completeSet() {
-        stopTimer()
-        if setsRemaining > 1 {
-            setsRemaining -= 1
-            startWorkoutTimer()
-        } else {
-            finishWorkout()
-        }
-    }
-    
-    @State private var backgroundTaskID: UIBackgroundTaskIdentifier = UIBackgroundTaskIdentifier.invalid
-    
-    func startBackgroundTask() {
-        backgroundTaskID = UIApplication.shared.beginBackgroundTask(expirationHandler: {
-            UIApplication.shared.endBackgroundTask(self.backgroundTaskID)
-            self.backgroundTaskID = UIBackgroundTaskIdentifier.invalid
-        })
-    }
-
-    func stopBackgroundTask() {
-        if backgroundTaskID != UIBackgroundTaskIdentifier.invalid {
-            UIApplication.shared.endBackgroundTask(backgroundTaskID)
-            backgroundTaskID = UIBackgroundTaskIdentifier.invalid
+    private var workoutImageName: String {
+        switch viewModel.workout.type.lowercased() {
+        case "yoga":
+            return "figure.yoga"
+        case "strength":
+            return "figure.strengthtraining.traditional"
+        case "cardio":
+            return "figure.run"
+        case "hiit":
+            return "bolt.fill"
+        default:
+            return "dumbbell"
         }
     }
     
@@ -274,58 +174,5 @@ struct WorkoutDetail: View {
             print("Error configuring audio session: \(error)")
         }
     }
-    
-    private func playSound() {
-        let soundName: String = "countdown.mp3"
-        
-        
-            if let url = Bundle.main.url(forResource: soundName, withExtension: nil) {
-                do {
-                    player = try AVAudioPlayer(contentsOf: url)
-                    player?.play()
-                } catch {
-                    print("Error playing sound: \(error)")
-                }
-            } else {
-                print("Sound file not found!")
-            }
-    }
-    
-    private func sendNotification() {
-            let content = UNMutableNotificationContent()
-            content.title = "\(workout.name) " + NSLocalizedString("Done", comment: "")
-            content.body = NSLocalizedString("Great job! Keep pushing your limits!", comment: "")
-            content.sound = .default
-
-            let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
-            let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
-
-            UNUserNotificationCenter.current().add(request) { error in
-                if let error = error {
-                    print("Error: \(error.localizedDescription)")
-                }
-            }
-        }
-    
-    private func finishWorkout() {
-        stopTimer()
-        isStarted = false
-        sendNotification()
-        showCompletionScreen = true
-    }
-
-    private func skipPhase() {
-        stopTimer()
-        if currentPhase == NSLocalizedString("Workout", comment: "Workout phase") {
-            startRestTimer()
-        } else {
-            completeSet()
-        }
-    }
-}
-
-#Preview{
-    let fakeWorkout = Workout(name: "Fake Workout", date: Date.now, steps: 2, sets: 2, duration: 1.0, rest: 0.1, type: "HIIT", repeatDays: [1,3,4], notes: "this is a fake workout generated only for demo purpose")
-    WorkoutDetail(workout: fakeWorkout)
 }
 

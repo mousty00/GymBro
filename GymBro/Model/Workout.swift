@@ -8,13 +8,13 @@ class Workout {
     var date: Date
     var steps: Int
     var sets: Int
-    var duration: Double
-    var rest: Double
+    var duration: Int
+    var rest: Int
     var type: String
     var repeatDays: [Int]
     var notes: String?
     
-    init(name: String, date: Date, steps: Int, sets: Int, duration: Double, rest: Double, type: String, repeatDays: [Int], notes: String?) {
+    init(name: String, date: Date, steps: Int, sets: Int, duration: Int, rest: Int, type: String, repeatDays: [Int], notes: String?) {
         self.id = UUID()
         self.name = name
         self.date = date

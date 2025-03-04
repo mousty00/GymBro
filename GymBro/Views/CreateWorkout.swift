@@ -8,8 +8,10 @@ struct CreateWorkout: View {
     @State private var date: Date = .now
     @State private var steps: Int = 1
     @State private var sets: Int = 1
-    @State private var duration: Double = 0.0
-    @State private var rest: Double = 0.0
+    @State private var durationMinutes: Int = 0
+    @State private var durationSeconds: Int = 0
+    @State private var restMinutes: Int = 0
+    @State private var restSeconds: Int = 0
     @State private var type: String = NSLocalizedString("Cardio", comment: "Default workout type")
     @State private var selectedDays: [Int] = []
     @State private var notes: String = ""
@@ -32,8 +34,8 @@ struct CreateWorkout: View {
                 CustomPicker(selection: $steps, label: NSLocalizedString("Steps", comment: "Steps count"), range: 1...100)
                 CustomPicker(selection: $sets, label: NSLocalizedString("Sets", comment: "Sets count"), range: 1...20)
 
-                DoublePicker(selection: $duration, label: NSLocalizedString("Duration for set", comment: "Duration per set"), range: stride(from: 0.0, through: 10.0, by: 0.5).map { $0 })
-                DoublePicker(selection: $rest, label: NSLocalizedString("Rest", comment: "Rest time"), range: stride(from: 0.0, through: 20.0, by: 0.1).map { $0 })
+                TimePicker(label: NSLocalizedString("Duration for set", comment: ""), minutes: $durationMinutes, seconds: $durationSeconds)
+                TimePicker(label: NSLocalizedString("Rest", comment: ""), minutes: $restMinutes, seconds: $restSeconds)
                 
                 CustomPicker(selection: $type, label: NSLocalizedString("Workout Type", comment: "Type of workout"), options: types)
                 
@@ -59,7 +61,6 @@ struct CreateWorkout: View {
                         )
                         .foregroundColor(.primary)
                 }
-
             }
             .toolbar {
                 ToolbarItemGroup(placement: .topBarLeading) {
@@ -74,15 +75,39 @@ struct CreateWorkout: View {
                 
                 ToolbarItemGroup(placement: .topBarTrailing) {
                     Button(NSLocalizedString("Save", comment: "Save button")) {
-                        let workout = Workout(name: name, date: date, steps: steps, sets: sets, duration: duration, rest: rest, type: type, repeatDays: selectedDays, notes: notes)
+                        
+                        let (correctedDurationMinutes, correctedDurationSeconds) = normalizeTime(minutes: durationMinutes, seconds: durationSeconds)
+                        let totalDurationInSeconds = (correctedDurationMinutes * 60) + correctedDurationSeconds
+                        
+                        let (correctedRestMinutes, correctedRestSeconds) = normalizeTime(minutes: restMinutes, seconds: restSeconds)
+                        let totalRestInSeconds = (correctedRestMinutes * 60) + correctedRestSeconds
+                        
+                        let workout = Workout(
+                            name: name,
+                            date: date,
+                            steps: steps,
+                            sets: sets,
+                            duration: totalDurationInSeconds,
+                            rest: totalRestInSeconds,
+                            type: type,
+                            repeatDays: selectedDays,
+                            notes: notes
+                        )
                         context.insert(workout)
                         print("Workout added: \(workout.name)")
                         dismiss()
                     }
-                    .disabled(name.isEmpty || duration == 0.0 || rest == 0.0 || selectedDays.isEmpty)
+                    .disabled(name.isEmpty || durationMinutes == 0 && durationSeconds == 0 || restMinutes == 0 && restSeconds == 0 || selectedDays.isEmpty)
                 }
             }
         }
+    }
+    
+    private func normalizeTime(minutes: Int, seconds: Int) -> (Int, Int) {
+        let extraMinutes = seconds / 60
+        let correctedSeconds = seconds % 60
+        let correctedMinutes = minutes + extraMinutes
+        return (correctedMinutes, correctedSeconds)
     }
 }
 
