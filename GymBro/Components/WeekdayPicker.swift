@@ -24,7 +24,7 @@ struct WeekdayPicker: View {
                 }
             }
         }
-        .navigationTitle("Select Days")
+        .navigationTitle(NSLocalizedString("Select Days", comment:""))
         .navigationBarTitleDisplayMode(.inline)
     }
 

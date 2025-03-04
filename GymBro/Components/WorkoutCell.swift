@@ -19,7 +19,7 @@ struct WorkoutCell: View {
                             .foregroundColor(.gray)
                         
                         if !workout.repeatDays.isEmpty {
-                            Text("Days: \(formattedDays())")
+                            Text(NSLocalizedString("Days", comment: "") + ":  \(formattedDays())")
                                 .font(.caption)
                                 .foregroundColor(.gray)
                         }

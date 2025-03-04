@@ -1,9 +1,6 @@
 import SwiftUI
 import SwiftData
 
-import SwiftUI
-import SwiftData
-
 struct WorkoutList: View {
     
     @Environment(\.modelContext) private var context
@@ -13,42 +10,37 @@ struct WorkoutList: View {
     @Query(sort: \Workout.date, order: .reverse) private var allWorkouts: [Workout]
 
     var filteredWorkouts: [Workout] {
-            let calendar = Calendar.current
-            let selectedWeekday = calendar.component(.weekday, from: selectedDate) - 1
-        print("Selected Weekday: \(calendar.weekdaySymbols[selectedWeekday])")
+        let calendar = Calendar.current
+        let selectedWeekday = calendar.component(.weekday, from: selectedDate) - 1
 
-                return allWorkouts.filter { workout in
-                    print("Workout: \(workout.name) - Repeat Days: \(workout.repeatDays)")
-                    return workout.repeatDays.contains(selectedWeekday)
-            }
+        return allWorkouts.filter { workout in
+            return workout.repeatDays.contains(selectedWeekday)
+        }
     }
 
     var body: some View {
         NavigationStack {
-            
             WeeklyCalendar(selectedDate: $selectedDate)
                 .padding(.vertical, 15)
-            
             
             List {
                 ForEach(filteredWorkouts) { workout in
                     WorkoutCell(workout: workout)
                         .swipeActions(edge: .leading) {
-                            NavigationLink(destination: EditWorkout(workout: workout)){
-                                Button { } label: {
-                                    Label("Edit", systemImage: "pencil")
+                            NavigationLink(destination: EditWorkout(workout: workout)) {
+                                Button {
+                                } label: {
+                                    Label(NSLocalizedString("Edit", comment: ""), systemImage: "pencil")
                                 }
                                 .tint(.blue)
-                                
                             }
                         }
                 }
                 .onDelete(perform: deleteWorkout)
-                
             }
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    Text("Workouts")
+                    Text(NSLocalizedString("Workouts", comment: ""))
                         .font(.largeTitle)
                         .bold()
                         .padding()
@@ -66,11 +58,11 @@ struct WorkoutList: View {
             .overlay {
                 if filteredWorkouts.isEmpty {
                     ContentUnavailableView(label: {
-                        Label("No Workouts", systemImage: "list.bullet.rectangle.portrait")
+                        Label(NSLocalizedString("No Workouts", comment: ""), systemImage: "list.bullet.rectangle.portrait")
                     }, description: {
-                        Text("Start adding workouts to see your list.")
+                        Text(NSLocalizedString("Start adding workouts to see your list.", comment: ""))
                     }, actions: {
-                        Button("Add Workout") {
+                        Button(NSLocalizedString("Add Workout", comment: "")) {
                             isShowingItemSheet.toggle()
                         }
                         .foregroundStyle(.blue)
@@ -83,39 +75,36 @@ struct WorkoutList: View {
                 .presentationDetents([.large])
         }
         
-        Button("Delete All Workouts") {
+        Button(NSLocalizedString("Delete All Workouts", comment: "")) {
             deleteAllWorkouts()
         }
         .padding()
         .foregroundStyle(.red)
-        
     }
 
     private func deleteWorkout(at offsets: IndexSet) {
-           let calendar = Calendar.current
-           let selectedWeekday = calendar.component(.weekday, from: selectedDate) - 1
-           
-           for index in offsets {
-               let workout = filteredWorkouts[index]
-               
-               if let dayIndex = workout.repeatDays.firstIndex(of: selectedWeekday) {
-                   workout.repeatDays.remove(at: dayIndex)
-               }
-               
-               if workout.repeatDays.isEmpty {
-                   context.delete(workout)
-               }
-           }
-       }
-    
+        let calendar = Calendar.current
+        let selectedWeekday = calendar.component(.weekday, from: selectedDate) - 1
+
+        for index in offsets {
+            let workout = filteredWorkouts[index]
+
+            if let dayIndex = workout.repeatDays.firstIndex(of: selectedWeekday) {
+                workout.repeatDays.remove(at: dayIndex)
+            }
+
+            if workout.repeatDays.isEmpty {
+                context.delete(workout)
+            }
+        }
+    }
+
     private func deleteAllWorkouts() {
         for workout in filteredWorkouts {
             context.delete(workout)
         }
     }
-
 }
-
 
 #Preview {
     WorkoutList()

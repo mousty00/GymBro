@@ -11,7 +11,7 @@ struct WorkoutDetail: View {
     @State private var timeRemaining: Double
     @State private var timer: Timer? = nil
     @State private var isResting: Bool = false
-    @State private var currentPhase: String = "Workout"
+    @State private var currentPhase: String = NSLocalizedString("Workout", comment: "Workout phase")
     @State private var setsRemaining: Int
     @State private var showCompletionScreen: Bool = false
 
@@ -30,7 +30,7 @@ struct WorkoutDetail: View {
                             Text(workout.name)
                                 .fontWeight(.semibold)
                                 .font(.system(size: 40))
-                            Text("Type:  \(workout.type)")
+                            Text(NSLocalizedString("Type", comment: "Workout type") + ": \(workout.type)")
                                 .foregroundStyle(colorScheme == .dark ? .white.opacity(0.6) : .primary)
                         }
                         Spacer()
@@ -64,7 +64,7 @@ struct WorkoutDetail: View {
                                     .font(.system(size: 50))
                                     .fontWeight(.semibold)
                                     .foregroundStyle(colorScheme == .dark ? .white.opacity(0.6) : .primary)
-                                Text(currentPhase == "Rest" ? "Rest" : "Workout")
+                                Text(currentPhase)
                                     .foregroundStyle(colorScheme == .dark ? .white.opacity(0.6) : .primary)
                             }
                             
@@ -82,14 +82,14 @@ struct WorkoutDetail: View {
                                     Circle()
                                         .trim(from: 0.0, to: progress)
                                         .stroke(style: StrokeStyle(lineWidth: 6, lineCap: .round, lineJoin: .round))
-                                        .foregroundColor(currentPhase == "Workout" ? (isStarted ? .orange : .green) : .red)
+                                        .foregroundColor(currentPhase == NSLocalizedString("Workout", comment: "Workout phase") ? (isStarted ? .orange : .green) : .red)
                                         .rotationEffect(.degrees(-90))
                                         .animation(.linear(duration: 1), value: progress)
                                     
                                     Image(systemName: isStarted ? "pause" : "play.fill")
                                         .resizable()
                                         .frame(width: 30, height: 30, alignment: .center)
-                                        .foregroundStyle(currentPhase == "Workout" ? (isStarted ? .orange : .green) : .red)
+                                        .foregroundStyle(currentPhase == NSLocalizedString("Workout", comment: "Workout phase") ? (isStarted ? .orange : .green) : .red)
                                 }
                             }
                             .frame(width: 100, height: 100)
@@ -100,7 +100,7 @@ struct WorkoutDetail: View {
                     Button {
                         skipPhase()
                     } label: {
-                        Text("Skip")
+                        Text(NSLocalizedString("Skip", comment: "Skip phase"))
                             .font(.system(size: 20))
                             .bold()
                             .foregroundStyle(.blue)
@@ -113,7 +113,7 @@ struct WorkoutDetail: View {
                             Text("\(workout.steps)")
                                 .fontWeight(.semibold)
                                 .font(.system(size: 40))
-                            Text("reps")
+                            Text(NSLocalizedString("Reps", comment: "Repetitions"))
                                 .fontWeight(.semibold)
                                 .font(.system(size: 20))
                         }
@@ -122,7 +122,7 @@ struct WorkoutDetail: View {
                             Text("\(setsRemaining)")
                                 .fontWeight(.semibold)
                                 .font(.system(size: 40))
-                            Text("sets")
+                            Text(NSLocalizedString("Sets", comment: "Workout sets"))
                                 .fontWeight(.semibold)
                                 .font(.system(size: 20))
                         }
@@ -136,12 +136,12 @@ struct WorkoutDetail: View {
                 // Splash screen at the end of the workout
                 if showCompletionScreen {
                     VStack {
-                        Text("\(workout.name) Done!")
+                        Text("\(workout.name) " + NSLocalizedString("Done", comment: "Workout completed"))
                             .font(.largeTitle)
                             .fontWeight(.bold)
                             .padding()
                         
-                        Text("Great job! Keep pushing your limits!")
+                        Text(NSLocalizedString("Great job! Keep pushing your limits!", comment: "Encouragement message"))
                             .font(.title2)
                             .multilineTextAlignment(.center)
                             .padding()
@@ -149,7 +149,7 @@ struct WorkoutDetail: View {
                         Button {
                             dismiss()
                         } label: {
-                            Text("Continue")
+                            Text(NSLocalizedString("Continue", comment: "Continue button"))
                                 .bold()
                                 .padding()
                                 .foregroundColor(.blue)
@@ -186,7 +186,7 @@ struct WorkoutDetail: View {
     }
     
     private func nextPhase() {
-        if currentPhase == "Workout" {
+        if currentPhase == NSLocalizedString("Workout", comment: "Workout phase") {
             startRestTimer()
         } else {
             completeSet()
@@ -194,7 +194,7 @@ struct WorkoutDetail: View {
     }
     
     private func startWorkoutTimer() {
-        currentPhase = "Workout"
+        currentPhase = NSLocalizedString("Workout", comment: "Workout phase")
         isResting = false
         timeRemaining = workout.duration * 60
         progress = 1.0
@@ -202,7 +202,7 @@ struct WorkoutDetail: View {
     }
     
     private func startRestTimer() {
-        currentPhase = "Rest"
+        currentPhase = NSLocalizedString("Rest", comment: "Rest phase")
         isResting = true
         timeRemaining = workout.rest * 60
         progress = 1.0
@@ -219,40 +219,19 @@ struct WorkoutDetail: View {
         }
     }
     
-    private func deleteWorkout() {
-        let calendar = Calendar.current
-        let todayWeekday = calendar.component(.weekday, from: Date()) - 1
-
-        if let index = workout.repeatDays.firstIndex(of: todayWeekday) {
-            workout.repeatDays.remove(at: index)
-            if workout.repeatDays.isEmpty {
-                if let context = workout.modelContext {
-                    context.delete(workout)
-                }
-            }
-        }
-    }
-    
     private func finishWorkout() {
         stopTimer()
         isStarted = false
-        deleteWorkout()
         showCompletionScreen = true
     }
 
     private func skipPhase() {
         stopTimer()
-        if currentPhase == "Workout" {
+        if currentPhase == NSLocalizedString("Workout", comment: "Workout phase") {
             startRestTimer()
         } else {
             completeSet()
         }
     }
-}
-
-#Preview {
-    let fakeWorkout = Workout(name: "Leg Press", date: Date(), steps: 10, sets: 3, duration: 0.5, rest: 0.4, type: "Strength", repeatDays: [1, 2, 3])
-    
-    return WorkoutDetail(workout: fakeWorkout)
 }
 

@@ -14,7 +14,7 @@ struct WelcomeView: View {
                     .fontWeight(.bold)
                     .multilineTextAlignment(.center)
                 
-                Text("App developed by Mousty")
+                Text(NSLocalizedString("App developed by Mousty", comment: ""))
                     .font(.subheadline)
                     .foregroundColor(.gray)
             }
