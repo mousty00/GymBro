@@ -38,7 +38,7 @@ class WorkoutViewModel: ObservableObject {
                     self.timeRemaining -= 1
                     self.progress = Double(self.timeRemaining) / Double(totalDuration)
                     
-                    if self.timeRemaining <= 3 && !self.isMuted {
+                    if self.timeRemaining <= 4 && !self.isMuted {
                         self.playSound()
                     }
                 } else {
