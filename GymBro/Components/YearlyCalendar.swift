@@ -26,7 +26,7 @@ struct YearlyCalendar: View {
                 
                 Text("\(currentMonth, formatter: monthYearFormatter)")
                     .font(.title)
-                    .bold()
+                    .fontWeight(.semibold)
                 
                 Button(action: {
                     navigateToNextMonth()
@@ -38,7 +38,6 @@ struct YearlyCalendar: View {
             }
             .padding()
             
-            // Days Scroll
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 10) {
                     ForEach(daysInMonth, id: \.self) { date in
@@ -54,19 +53,18 @@ struct YearlyCalendar: View {
                                     Text(dayNumber(for: date))
                                         .font(.title)
                                         .fontWeight(selectedDate == date ? .bold : .regular)
-                                        .foregroundColor(selectedDate == date ? (colorScheme == .dark ? .black : .white) : .primary)
+                                        .foregroundColor(selectedDate == date ? Color.white : .primary)
                                         .frame(width: 40, height: 40, alignment: .center)
                                     
                                     Circle().fill()
-                                        .foregroundColor(date == Date.today ? (selectedDate == date ? Color.gray.opacity(0.1) : .primary) : .clear)
+                                        .foregroundStyle(date == Date.today ? Color.white : Color.clear)
                                         .frame(width: 5, height: 5)
                                         .offset(y: -5)
                                 }
                             }
                             .padding(10)
-                            .background(selectedDate == date ? Color.gray.opacity(0.1) : Color.clear)
+                            .background(selectedDate == date ? Color.indigo : Color.clear)
                             .clipShape(Circle())
-                            .shadow(color: selectedDate == date ? .gray : .clear, radius: 5)
                         }
                         .frame(width: 60) // day button Width
                     }

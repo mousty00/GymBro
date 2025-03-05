@@ -7,7 +7,10 @@ struct WorkoutList: View {
     @State private var isShowingItemSheet = false
     @State private var selectedDate: Date = .now
     @State private var showToast: Bool = false
+    @State private var showDeleteDayAlert = false
     @State private var showDeleteAllAlert = false
+    @State private var showDeleteSingleAlert = false
+    @State private var workoutToDelete: ModelWorkout? = nil
     @State private var isDeleteConfirmed = false
     
     @Query(sort: \ModelWorkout.date, order: .reverse) private var allWorkouts: [ModelWorkout]
@@ -47,7 +50,8 @@ struct WorkoutList: View {
                             WorkoutCell(workout: workout)
                                 .swipeActions(edge: .trailing) {
                                     Button {
-                                        deleteWorkout(workout)
+                                        workoutToDelete = workout
+                                        showDeleteSingleAlert.toggle()
                                     } label: {
                                         Label(NSLocalizedString("Delete", comment: ""), systemImage: "trash")
                                     }
@@ -62,16 +66,16 @@ struct WorkoutList: View {
                                 }
                         }
                     }
-                }
-                
-                Button(NSLocalizedString("Delete All Workouts for this day", comment: "")) {
-                    showDeleteAllAlert.toggle()
-                }
-                .padding()
-                .foregroundStyle(.red)
-                
-                if showToast {
-                    Toast(message: NSLocalizedString("Workout Deleted", comment: ""), status: "info")
+                    
+                    Button(NSLocalizedString("Delete All Workouts for this day", comment: "")) {
+                        showDeleteDayAlert.toggle()
+                    }
+                    .padding(.bottom, 10)
+                    .foregroundStyle(.red)
+                    
+                    if showToast {
+                        Toast(message: NSLocalizedString("Workout Deleted", comment: ""), status: "info")
+                    }
                 }
             }
             .toolbar {
@@ -95,13 +99,36 @@ struct WorkoutList: View {
                 CreateWorkout(selectedDate: $selectedDate)
                     .presentationDetents([.large])
             }
-            .alert(isPresented: $showDeleteAllAlert) {
+            .alert(isPresented: $showDeleteDayAlert) {
                 Alert(
                     title: Text(NSLocalizedString("Are you sure?", comment: "")),
                     message: Text(NSLocalizedString("This action will delete all workouts for the selected date.", comment: "")),
                     primaryButton: .destructive(Text(NSLocalizedString("Delete", comment: ""))) {
                         isDeleteConfirmed = true
                         deleteAllWorkouts()
+                    },
+                    secondaryButton: .cancel()
+                )
+            }
+            .alert(isPresented: $showDeleteAllAlert) {
+                Alert(
+                    title: Text(NSLocalizedString("Are you sure?", comment: "")),
+                    message: Text(NSLocalizedString("This action will delete all workouts", comment: "")),
+                    primaryButton: .destructive(Text(NSLocalizedString("Delete", comment: ""))) {
+                        isDeleteConfirmed = true
+                        deleteAllWorkouts(withName: workoutToDelete?.name ?? "")
+                    },
+                    secondaryButton: .cancel()
+                )
+            }
+            .alert(isPresented: $showDeleteSingleAlert) {
+                Alert(
+                    title: Text(NSLocalizedString("Are you sure?", comment: "")),
+                    message: Text(NSLocalizedString("This action will delete the selected workout.", comment: "")),
+                    primaryButton: .destructive(Text(NSLocalizedString("Delete", comment: ""))) {
+                        if let workout = workoutToDelete {
+                            deleteWorkout(workout)
+                        }
                     },
                     secondaryButton: .cancel()
                 )
@@ -142,4 +169,3 @@ struct WorkoutList: View {
         }
     }
 }
-
