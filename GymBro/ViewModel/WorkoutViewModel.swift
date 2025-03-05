@@ -11,7 +11,7 @@ class WorkoutViewModel: ObservableObject {
     @Published var isStarted: Bool = false
     @Published var setsRemaining: Int
     @Published var showCompletionScreen: Bool = false
-    @Published var isMuted: Bool = false
+    @Published var isMuted: Bool = true
     @Published var isWorkoutCompletedToday: Bool = false
     
     private var timer: AnyCancellable?
