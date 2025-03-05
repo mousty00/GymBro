@@ -6,7 +6,7 @@ struct WelcomeView: View {
     
     var body: some View {
         if isActive {
-            ContentView()
+            TabNavigationView()
         } else {
             VStack {
                 Text("Gym Bro")

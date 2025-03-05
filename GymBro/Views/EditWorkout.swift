@@ -5,7 +5,6 @@ struct EditWorkout: View {
     @Environment(\.modelContext) private var context
     
     @State private var name: String
-    @State private var date: Date
     @State private var steps: Int
     @State private var sets: Int
     @State private var durationMinutes: Int
@@ -13,8 +12,9 @@ struct EditWorkout: View {
     @State private var restMinutes: Int
     @State private var restSeconds: Int
     @State private var type: String
-    @State private var selectedDays: [Int]
     @State private var notes: String
+    @State private var selectedDays: Set<Int> // Set of selected days
+    
     private var textLimit: Int = 160
     
     let types = [
@@ -24,14 +24,13 @@ struct EditWorkout: View {
         NSLocalizedString("Yoga", comment: "Yoga workout type")
     ]
     
-    let weekdays = Calendar.current.weekdaySymbols
+    let weekdays = Calendar.current.weekdaySymbols // ["Sunday", "Monday", ..., "Saturday"]
     
-    var workout: Workout
+    var workout: ModelWorkout
 
-    init(workout: Workout) {
+    init(workout: ModelWorkout) {
         self.workout = workout
         _name = State(initialValue: workout.name)
-        _date = State(initialValue: workout.date)
         _steps = State(initialValue: workout.steps)
         _sets = State(initialValue: workout.sets)
         _durationMinutes = State(initialValue: Int(workout.duration) / 60)
@@ -39,30 +38,37 @@ struct EditWorkout: View {
         _restMinutes = State(initialValue: Int(workout.rest) / 60)
         _restSeconds = State(initialValue: Int(workout.rest) % 60)
         _type = State(initialValue: workout.type)
-        _selectedDays = State(initialValue: workout.repeatDays)
         _notes = State(initialValue: workout.notes ?? "")
+        _selectedDays = State(initialValue: workout.getCompletedDays())
     }
 
     var body: some View {
         NavigationStack {
             Form {
                 TextField(NSLocalizedString("Workout Name", comment: "Workout name field"), text: $name)
-
+                
                 CustomPicker(selection: $steps, label: NSLocalizedString("Steps", comment: "Steps count"), range: 1...100)
                 CustomPicker(selection: $sets, label: NSLocalizedString("Sets", comment: "Sets count"), range: 1...20)
-
+                
                 TimePicker(label: NSLocalizedString("Duration for set", comment: ""), minutes: $durationMinutes, seconds: $durationSeconds)
                 TimePicker(label: NSLocalizedString("Rest", comment: ""), minutes: $restMinutes, seconds: $restSeconds)
                 
                 CustomPicker(selection: $type, label: NSLocalizedString("Workout Type", comment: "Type of workout"), options: types)
                 
-                NavigationLink(destination: WeekdayPicker(selectedDays: $selectedDays)) {
-                    HStack {
-                        Text(NSLocalizedString("Repeat", comment: "Repeat workout"))
-                            .foregroundColor(.primary)
-                        Spacer()
-                        Text(selectedDays.isEmpty ? NSLocalizedString("None", comment: "No repeat days") : selectedDays.map { weekdays[$0] }.joined(separator: ", "))
-                            .foregroundColor(.gray)
+                Section(header: Text(NSLocalizedString("Select Days", comment: "Days to repeat workout"))){
+                    ForEach(0..<7, id: \.self) { dayIndex in
+                        Toggle(isOn: Binding(
+                            get: { selectedDays.contains(dayIndex) },
+                            set: { newValue in
+                                if newValue {
+                                    selectedDays.insert(dayIndex)
+                                } else {
+                                    selectedDays.remove(dayIndex)
+                                }
+                            }
+                        )) {
+                            Text(weekdays[dayIndex])
+                        }
                     }
                 }
                 
@@ -110,19 +116,37 @@ struct EditWorkout: View {
         let totalDurationInSeconds = durationMinutes * 60 + durationSeconds
         let totalRestInSeconds = restMinutes * 60 + restSeconds
         
-        workout.name = name
-        workout.date = date
-        workout.steps = steps
-        workout.sets = sets
-        workout.duration = totalDurationInSeconds
-        workout.rest = totalRestInSeconds
-        workout.type = type
-        workout.repeatDays = selectedDays
-        workout.notes = notes
+        context.delete(workout)
+        
+        for day in selectedDays {
+            let workoutDate = getNextWorkoutDate(from: workout.date, forDay: day)
+            
+            let updatedWorkout = ModelWorkout(
+                name: name,
+                date: workoutDate,
+                steps: steps,
+                sets: sets,
+                duration: totalDurationInSeconds,
+                rest: totalRestInSeconds,
+                type: type,
+                notes: notes,
+                completedDays: selectedDays
+            )
+            context.insert(updatedWorkout)
+            print("Workout updated: \(updatedWorkout.name) for \(workoutDate)")
+        }
         
         try? context.save()
+    }
+
+    private func getNextWorkoutDate(from startDate: Date, forDay day: Int) -> Date {
+        let calendar = Calendar.current
+        let weekday = calendar.component(.weekday, from: startDate) - 1 // 0 = Sunday, 1 = Monday, etc.
         
-        print("Workout updated: \(workout.name)")
+        let daysToAdd = (day - weekday + 7) % 7
+        let nextWorkoutDate = calendar.date(byAdding: .day, value: daysToAdd, to: startDate)!
+        
+        return nextWorkoutDate
     }
 }
 

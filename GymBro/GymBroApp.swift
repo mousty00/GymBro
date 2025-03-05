@@ -8,13 +8,13 @@ struct GymBroApp: App {
     let container: ModelContainer
     
     init() {
+        
         do {
-            let schema = Schema([Workout.self])
+            let schema = Schema([ModelWorkout.self])
             self.container = try ModelContainer(for: schema, configurations: [])
         } catch {
             fatalError("Failed to load the model container: \(error)")
         }
-        
         requestNotificationPermissions()
     }
     
@@ -34,5 +34,6 @@ struct GymBroApp: App {
             }
         }
     }
+    
 }
 

@@ -1,8 +1,7 @@
-
 import SwiftUI
 
 struct WorkoutCell: View {
-    let workout: Workout
+    let workout: ModelWorkout
     let weekdays = Calendar.current.weekdaySymbols
     
     var body: some View {
@@ -10,27 +9,22 @@ struct WorkoutCell: View {
             VStack(alignment: .leading, spacing: 5) {
                 NavigationLink(destination: WorkoutDetail(workout: workout)){
                     VStack(alignment: .leading, spacing: 10){
-                        
                         Text(workout.name)
                             .font(.headline)
-                            
+                        
                         Text(workout.type)
                             .font(.subheadline)
                             .foregroundColor(.gray)
                         
-                        if !workout.repeatDays.isEmpty {
-                            Text(NSLocalizedString("Days", comment: "") + ":  \(formattedDays())")
-                                .font(.caption)
-                                .foregroundColor(.gray)
-                        }
+                        // Display the workout date
+                        Text(NSLocalizedString("Date", comment: "Workout date") + ":  \(formattedDate())")
+                            .font(.caption)
+                            .foregroundColor(.gray)
                     }
-                    
                 }
                 .padding(.vertical, 10)
-    
-        }
-        Spacer()
-            
+            }
+            Spacer()
         }
         .padding(.vertical, 8)
     }
@@ -40,9 +34,5 @@ struct WorkoutCell: View {
         formatter.dateStyle = .medium
         return formatter.string(from: workout.date)
     }
-    
-    private func formattedDays() -> String {
-        let selected = workout.repeatDays.map { weekdays[$0] }
-        return selected.joined(separator: ", ")
-    }
 }
+

@@ -3,9 +3,8 @@ import SwiftUI
 struct CreateWorkout: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var context
-    
+    @Binding var selectedDate: Date
     @State private var name: String = ""
-    @State private var date: Date = .now
     @State private var steps: Int = 1
     @State private var sets: Int = 1
     @State private var durationMinutes: Int = 0
@@ -13,8 +12,10 @@ struct CreateWorkout: View {
     @State private var restMinutes: Int = 0
     @State private var restSeconds: Int = 0
     @State private var type: String = NSLocalizedString("Cardio", comment: "Default workout type")
-    @State private var selectedDays: [Int] = []
     @State private var notes: String = ""
+    @State private var selectedDays: Set<Int> = Set()
+    @State private var repeatUntilDate: Date = Date()
+
     private var textLimit: Int = 160
     
     let types = [
@@ -24,13 +25,17 @@ struct CreateWorkout: View {
         NSLocalizedString("Yoga", comment: "Yoga workout type")
     ]
     
-    let weekdays = Calendar.current.weekdaySymbols
+    let weekdays = Calendar.current.weekdaySymbols // ["Sunday", "Monday", "Tuesday", ..., "Saturday"]
+    
+    init(selectedDate: Binding<Date>) {
+        _selectedDate = selectedDate
+    }
     
     var body: some View {
         NavigationStack {
             Form {
                 TextField(NSLocalizedString("Workout Name", comment: "Workout name field"), text: $name)
-
+                
                 CustomPicker(selection: $steps, label: NSLocalizedString("Steps", comment: "Steps count"), range: 1...100)
                 CustomPicker(selection: $sets, label: NSLocalizedString("Sets", comment: "Sets count"), range: 1...20)
 
@@ -39,15 +44,24 @@ struct CreateWorkout: View {
                 
                 CustomPicker(selection: $type, label: NSLocalizedString("Workout Type", comment: "Type of workout"), options: types)
                 
-                NavigationLink(destination: WeekdayPicker(selectedDays: $selectedDays)) {
-                    HStack {
-                        Text(NSLocalizedString("Repeat", comment: "Repeat workout"))
-                            .foregroundColor(.primary)
-                        Spacer()
-                        Text(selectedDays.isEmpty ? NSLocalizedString("None", comment: "No repeat days") : selectedDays.map { weekdays[$0] }.joined(separator: ", "))
-                            .foregroundColor(.gray)
+                Section(header: Text(NSLocalizedString("Select Days", comment: "Days to repeat workout"))){
+                    ForEach(0..<7, id: \.self) { dayIndex in
+                        Toggle(isOn: Binding(
+                            get: { selectedDays.contains(dayIndex) },
+                            set: { newValue in
+                                if newValue {
+                                    selectedDays.insert(dayIndex)
+                                } else {
+                                    selectedDays.remove(dayIndex)
+                                }
+                            }
+                        )) {
+                            Text(weekdays[dayIndex])
+                        }
                     }
                 }
+                
+                DatePicker("Repeat Until", selection: $repeatUntilDate, in: selectedDate..., displayedComponents: .date)
                 
                 Section(header: Text("\(NSLocalizedString("Notes", comment: "Notes for workout")) (\(notes.count)/\(textLimit))")) {
                     TextEditor(text: $notes)
@@ -82,22 +96,29 @@ struct CreateWorkout: View {
                         let (correctedRestMinutes, correctedRestSeconds) = normalizeTime(minutes: restMinutes, seconds: restSeconds)
                         let totalRestInSeconds = (correctedRestMinutes * 60) + correctedRestSeconds
                         
-                        let workout = Workout(
-                            name: name,
-                            date: date,
-                            steps: steps,
-                            sets: sets,
-                            duration: totalDurationInSeconds,
-                            rest: totalRestInSeconds,
-                            type: type,
-                            repeatDays: selectedDays,
-                            notes: notes
-                        )
-                        context.insert(workout)
-                        print("Workout added: \(workout.name)")
+                        for day in selectedDays {
+                            let workoutDates = getAllWorkoutDates(from: selectedDate, until: repeatUntilDate, forDay: day)
+                            
+                            for workoutDate in workoutDates {
+                                let workout = ModelWorkout(
+                                    name: name,
+                                    date: workoutDate,
+                                    steps: steps,
+                                    sets: sets,
+                                    duration: totalDurationInSeconds,
+                                    rest: totalRestInSeconds,
+                                    type: type,
+                                    notes: notes,
+                                    completedDays: selectedDays
+                                )
+                                context.insert(workout)
+                                print("Workout added: \(workout.name) for \(workoutDate) ")
+                            }
+                        }
+                        
                         dismiss()
                     }
-                    .disabled(name.isEmpty || durationMinutes == 0 && durationSeconds == 0 || restMinutes == 0 && restSeconds == 0 || selectedDays.isEmpty)
+                    .disabled(name.isEmpty || durationMinutes == 0 && durationSeconds == 0 || restMinutes == 0 && restSeconds == 0)
                 }
             }
         }
@@ -109,5 +130,26 @@ struct CreateWorkout: View {
         let correctedMinutes = minutes + extraMinutes
         return (correctedMinutes, correctedSeconds)
     }
+    
+    private func getAllWorkoutDates(from startDate: Date, until endDate: Date, forDay day: Int) -> [Date] {
+        var dates: [Date] = []
+        var currentDate = startDate
+        
+        let calendar = Calendar.current
+        let weekday = calendar.component(.weekday, from: currentDate) - 1 // 0 = Sunday, 1 = Monday, etc.
+        
+        let daysToAdd = (day - weekday + 7) % 7
+        currentDate = calendar.date(byAdding: .day, value: daysToAdd, to: currentDate)!
+        
+        // Add current date till end date
+        while currentDate <= endDate {
+            dates.append(currentDate)
+            currentDate = calendar.date(byAdding: .weekOfYear, value: 1, to: currentDate)!
+        }
+        
+        return dates
+    }
+    
+    
 }
 

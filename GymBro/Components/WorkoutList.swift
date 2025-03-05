@@ -6,37 +6,73 @@ struct WorkoutList: View {
     @Environment(\.modelContext) private var context
     @State private var isShowingItemSheet = false
     @State private var selectedDate: Date = .now
+    @State private var showToast: Bool = false
+    @State private var showDeleteAllAlert = false
+    @State private var isDeleteConfirmed = false
     
-    @Query(sort: \Workout.date, order: .reverse) private var allWorkouts: [Workout]
+    @Query(sort: \ModelWorkout.date, order: .reverse) private var allWorkouts: [ModelWorkout]
 
-    var filteredWorkouts: [Workout] {
-        let calendar = Calendar.current
-        let selectedWeekday = calendar.component(.weekday, from: selectedDate) - 1
-
+    var filteredWorkouts: [ModelWorkout] {
         return allWorkouts.filter { workout in
-            return workout.repeatDays.contains(selectedWeekday)
+            let calendar = Calendar.current
+            let workoutDate = workout.date
+            return calendar.isDate(workoutDate, inSameDayAs: selectedDate)
         }
     }
 
     var body: some View {
         NavigationStack {
-            WeeklyCalendar(selectedDate: $selectedDate)
-                .padding(.vertical, 15)
-            
-            List {
-                ForEach(filteredWorkouts) { workout in
-                    WorkoutCell(workout: workout)
-                        .swipeActions(edge: .leading) {
-                            NavigationLink(destination: EditWorkout(workout: workout)) {
-                                Button {
-                                } label: {
-                                    Label(NSLocalizedString("Edit", comment: ""), systemImage: "pencil")
-                                }
-                                .tint(.blue)
+            VStack {
+                YearlyCalendar(selectedDate: $selectedDate)
+                    .padding(.vertical, 15)
+                
+                if filteredWorkouts.isEmpty {
+                    ContentUnavailableView(
+                        label: {
+                            Label(NSLocalizedString("No Workouts", comment: ""), systemImage: "list.bullet.rectangle.portrait")
+                        },
+                        description: {
+                            Text(NSLocalizedString("Start adding workouts to see your list.", comment: ""))
+                        },
+                        actions: {
+                            Button(NSLocalizedString("Add Workout", comment: "")) {
+                                isShowingItemSheet.toggle()
                             }
+                            .foregroundStyle(.blue)
                         }
+                    )
+                } else {
+                    List {
+                        ForEach(filteredWorkouts) { workout in
+                            WorkoutCell(workout: workout)
+                                .swipeActions(edge: .trailing) {
+                                    Button {
+                                        deleteWorkout(workout)
+                                    } label: {
+                                        Label(NSLocalizedString("Delete", comment: ""), systemImage: "trash")
+                                    }
+                                    .tint(.red)
+                                    
+                                    Button {
+                                        deleteAllWorkouts(withName: workout.name)
+                                    } label: {
+                                        Label(NSLocalizedString("Delete All", comment: ""), systemImage: "trash.fill")
+                                    }
+                                    .tint(.orange)
+                                }
+                        }
+                    }
                 }
-                .onDelete(perform: deleteWorkout)
+                
+                Button(NSLocalizedString("Delete All Workouts for this day", comment: "")) {
+                    showDeleteAllAlert.toggle()
+                }
+                .padding()
+                .foregroundStyle(.red)
+                
+                if showToast {
+                    Toast(message: NSLocalizedString("Workout Deleted", comment: ""), status: "info")
+                }
             }
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
@@ -55,58 +91,55 @@ struct WorkoutList: View {
                     }
                 }
             }
-            .overlay {
-                if filteredWorkouts.isEmpty {
-                    ContentUnavailableView(label: {
-                        Label(NSLocalizedString("No Workouts", comment: ""), systemImage: "list.bullet.rectangle.portrait")
-                    }, description: {
-                        Text(NSLocalizedString("Start adding workouts to see your list.", comment: ""))
-                    }, actions: {
-                        Button(NSLocalizedString("Add Workout", comment: "")) {
-                            isShowingItemSheet.toggle()
-                        }
-                        .foregroundStyle(.blue)
-                    })
-                }
+            .sheet(isPresented: $isShowingItemSheet) {
+                CreateWorkout(selectedDate: $selectedDate)
+                    .presentationDetents([.large])
+            }
+            .alert(isPresented: $showDeleteAllAlert) {
+                Alert(
+                    title: Text(NSLocalizedString("Are you sure?", comment: "")),
+                    message: Text(NSLocalizedString("This action will delete all workouts for the selected date.", comment: "")),
+                    primaryButton: .destructive(Text(NSLocalizedString("Delete", comment: ""))) {
+                        isDeleteConfirmed = true
+                        deleteAllWorkouts()
+                    },
+                    secondaryButton: .cancel()
+                )
             }
         }
-        .sheet(isPresented: $isShowingItemSheet) {
-            CreateWorkout()
-                .presentationDetents([.large])
+    }
+    
+    private func viewToast() {
+        showToast = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            showToast = false
         }
-        
-        Button(NSLocalizedString("Delete All Workouts", comment: "")) {
-            deleteAllWorkouts()
-        }
-        .padding()
-        .foregroundStyle(.red)
     }
 
-    private func deleteWorkout(at offsets: IndexSet) {
-        let calendar = Calendar.current
-        let selectedWeekday = calendar.component(.weekday, from: selectedDate) - 1
+    private func deleteWorkout(_ workout: ModelWorkout) {
+        context.delete(workout)
+        try? context.save()
+        viewToast()
+    }
 
-        for index in offsets {
-            let workout = filteredWorkouts[index]
-
-            if let dayIndex = workout.repeatDays.firstIndex(of: selectedWeekday) {
-                workout.repeatDays.remove(at: dayIndex)
-            }
-
-            if workout.repeatDays.isEmpty {
-                context.delete(workout)
-            }
+    private func deleteAllWorkouts(withName name: String) {
+        let workoutsToDelete = allWorkouts.filter { $0.name == name }
+        for workout in workoutsToDelete {
+            context.delete(workout)
         }
+        try? context.save()
+        viewToast()
     }
 
     private func deleteAllWorkouts() {
-        for workout in filteredWorkouts {
-            context.delete(workout)
+        if isDeleteConfirmed {
+            for workout in filteredWorkouts {
+                context.delete(workout)
+            }
+            try? context.save()
+            viewToast()
+            isDeleteConfirmed = false
         }
     }
-}
-
-#Preview {
-    WorkoutList()
 }
 

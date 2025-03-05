@@ -1,4 +1,3 @@
-
 import SwiftUI
 import Combine
 import AVFoundation
@@ -13,17 +12,19 @@ class WorkoutViewModel: ObservableObject {
     @Published var setsRemaining: Int
     @Published var showCompletionScreen: Bool = false
     @Published var isMuted: Bool = false
+    @Published var isWorkoutCompletedToday: Bool = false
     
     private var timer: AnyCancellable?
     private var player: AVAudioPlayer?
     private var isResting: Bool = false
-    var workout: Workout
+    var workout: ModelWorkout
     
-    init(workout: Workout) {
+    init(workout: ModelWorkout) {
         self.workout = workout
         self.timeRemaining = workout.duration
         self.setsRemaining = workout.sets
         self.currentPhase = NSLocalizedString("Workout", comment: "Workout phase")
+        self.isWorkoutCompletedToday = checkIfWorkoutCompletedToday()
     }
     
     func startTimer() {
@@ -38,21 +39,18 @@ class WorkoutViewModel: ObservableObject {
                     self.timeRemaining -= 1
                     self.progress = Double(self.timeRemaining) / Double(totalDuration)
                     
-                    if self.timeRemaining <= 4 && !self.isMuted {
-                        self.playSound()
-                    }
                 } else {
                     self.nextPhase()
                 }
             }
     }
-
     
     func stopTimer() {
         timer?.cancel()
     }
     
     func nextPhase() {
+        self.playSound()
         if currentPhase == NSLocalizedString("Workout", comment: "Workout phase") {
             startRestTimer()
         } else {
@@ -90,6 +88,8 @@ class WorkoutViewModel: ObservableObject {
         stopTimer()
         isStarted = false
         sendNotification()
+        isWorkoutCompletedToday = true
+        workout.lastCompletionDate = Date()
         showCompletionScreen = true
     }
     
@@ -119,7 +119,7 @@ class WorkoutViewModel: ObservableObject {
     }
     
     func playSound() {
-        let soundName: String = "countdown.mp3"
+        let soundName: String = "sound.mp3"
         
         if let url = Bundle.main.url(forResource: soundName, withExtension: nil) {
             do {
@@ -136,4 +136,12 @@ class WorkoutViewModel: ObservableObject {
     func toggleMute() {
         isMuted.toggle()
     }
+    
+    func checkIfWorkoutCompletedToday() -> Bool {
+        guard let lastCompletionDate = workout.lastCompletionDate else {
+            return false
+        }
+        return Calendar.current.isDateInToday(lastCompletionDate)
+    }
 }
+

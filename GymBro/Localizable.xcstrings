@@ -109,6 +109,17 @@
         }
       }
     },
+    "Date" : {
+      "comment" : "Workout date",
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "data"
+          }
+        }
+      }
+    },
     "Days" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -120,13 +131,45 @@
         }
       }
     },
+    "Delete" : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elimina"
+          }
+        }
+      }
+    },
+    "Delete All" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elimina tutti"
+          }
+        }
+      }
+    },
     "Delete All Workouts" : {
       "extractionState" : "manual",
       "localizations" : {
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Elimina Tutti"
+            "value" : "Elimina Tutti gli allenamenti"
+          }
+        }
+      }
+    },
+    "Delete All Workouts for this day" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elimina gli allenamenti per questo giorno"
           }
         }
       }
@@ -322,6 +365,16 @@
         }
       }
     },
+    "Repeat Until" : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ripeti fino"
+          }
+        }
+      }
+    },
     "Reps" : {
       "comment" : "Repetitions",
       "localizations" : {
@@ -497,6 +550,37 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Allenamento"
+          }
+        }
+      }
+    },
+    "Workout added successfully!" : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allenamento aggiunto"
+          }
+        }
+      }
+    },
+    "Workout Completed" : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allenamento Completato"
+          }
+        }
+      }
+    },
+    "Workout Deleted" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allenamenti Eliminati"
           }
         }
       }
