@@ -27,11 +27,6 @@ struct TabNavigationView: View {
                     }
                 }
                 .frame(height: 56)
-                .background(
-                    Color.black
-                        .opacity(0.9)
-                        .edgesIgnoringSafeArea(.bottom)
-                )
             }
         }
     }

@@ -9,12 +9,12 @@ struct TabBarButton: View {
         Button(action: action) {
             VStack {
                 Image(systemName: systemImage)
-                    .font(.system(size: 22))
-                    .foregroundColor(isSelected ? .white : .gray)
+                    .font(.system(size: 24))
+                    .foregroundColor(isSelected ? .primary : .gray)
                 
                 if isSelected {
                     Circle()
-                        .fill(Color.white)
+                        .fill(Color.red)
                         .frame(width: 4, height: 4)
                         .padding(.top, 2)
                 }
