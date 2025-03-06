@@ -9,12 +9,19 @@ struct YearlyCalendar: View {
     private var daysInMonth: [Date] {
         let calendar = Calendar.current
         let range = calendar.range(of: .day, in: .month, for: currentMonth) ?? 0..<0
-        return range.map { calendar.date(byAdding: .day, value: $0 - 1, to: currentMonth.startOfMonth())! }
+        var days: [Date] = []
+
+        for day in range {
+            if let date = calendar.date(byAdding: .day, value: day - 1, to: currentMonth.startOfMonth()) {
+                days.append(date)
+            }
+        }
+
+        return days
     }
     
     var body: some View {
         VStack {
-            // Month navigation
             HStack {
                 Button(action: {
                     navigateToPreviousMonth()
@@ -53,20 +60,36 @@ struct YearlyCalendar: View {
                                     Text(dayNumber(for: date))
                                         .font(.title)
                                         .fontWeight(selectedDate == date ? .bold : .regular)
-                                        .foregroundColor(selectedDate == date ? Color.white : .primary)
+                                        .foregroundColor(
+                                            selectedDate == date
+                                            ? (date == Date.today
+                                                ? Color.white // if is today and is selected is white
+                                                : (colorScheme == .dark ? Color.black : Color.white))
+                                            : (date == Date.today ? Color.red : .primary) // if is not selected but is today is red
+                                        )
                                         .frame(width: 40, height: 40, alignment: .center)
+                                        .background(
+                                            selectedDate == date
+                                            ? (colorScheme == .dark
+                                                ? (date == Date.today ? Color.red : Color.white)
+                                               : (date == Date.today ? Color.red : Color.black))
+                                            : Color.clear
+                                        )
+                                        .clipShape(Circle())
                                     
-                                    Circle().fill()
-                                        .foregroundStyle(date == Date.today ? Color.white : Color.clear)
+                                    Circle()
+                                        .fill()
+                                        .foregroundStyle(date == Date.today ? Color.red : Color.clear)
                                         .frame(width: 5, height: 5)
-                                        .offset(y: -5)
+                                        .offset(y: -1)
                                 }
+
+
                             }
                             .padding(10)
-                            .background(selectedDate == date ? Color.indigo : Color.clear)
-                            .clipShape(Circle())
+                            
                         }
-                        .frame(width: 60) // day button Width
+                        .frame(width: 60)
                     }
                 }
                 .padding(.horizontal, 10)
@@ -81,7 +104,6 @@ struct YearlyCalendar: View {
         }
     }
     
-    // Month navigation
     private func navigateToPreviousMonth() {
         currentMonth = Calendar.current.date(byAdding: .month, value: -1, to: currentMonth) ?? currentMonth
     }

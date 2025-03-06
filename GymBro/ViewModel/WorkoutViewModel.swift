@@ -2,6 +2,7 @@ import SwiftUI
 import Combine
 import AVFoundation
 import UserNotifications
+import BackgroundTasks
 
 class WorkoutViewModel: ObservableObject {
     
@@ -27,9 +28,12 @@ class WorkoutViewModel: ObservableObject {
         self.isWorkoutCompletedToday = checkIfWorkoutCompletedToday()
     }
     
+    var isWorkoutToday: Bool {
+        return Calendar.current.isDateInToday(workout.date)
+    }
+    
     func startTimer() {
         let totalDuration = isResting ? workout.rest : workout.duration
-        
         progress = 1.0
         
         timer = Timer.publish(every: 1, on: .main, in: .common)
@@ -38,7 +42,6 @@ class WorkoutViewModel: ObservableObject {
                 if self.timeRemaining > 0 {
                     self.timeRemaining -= 1
                     self.progress = Double(self.timeRemaining) / Double(totalDuration)
-                    
                 } else {
                     self.nextPhase()
                 }
@@ -64,6 +67,8 @@ class WorkoutViewModel: ObservableObject {
         timeRemaining = workout.duration
         progress = 1.0
         startTimer()
+        // Setup background task for timer
+        startBackgroundTask()
     }
     
     func startRestTimer() {
@@ -72,6 +77,8 @@ class WorkoutViewModel: ObservableObject {
         timeRemaining = workout.rest
         progress = 1.0
         startTimer()
+        // Setup background task for timer
+        startBackgroundTask()
     }
     
     func completeSet() {
@@ -87,7 +94,7 @@ class WorkoutViewModel: ObservableObject {
     func finishWorkout() {
         stopTimer()
         isStarted = false
-        sendNotification()
+        sendNotification(title: "\(workout.name) \(NSLocalizedString("Done", comment: ""))", body: NSLocalizedString("Great job! Keep pushing your limits!", comment: ""))
         isWorkoutCompletedToday = true
         workout.lastCompletionDate = Date()
         showCompletionScreen = true
@@ -102,10 +109,10 @@ class WorkoutViewModel: ObservableObject {
         }
     }
     
-    func sendNotification() {
+    func sendNotification(title: String, body: String) {
         let content = UNMutableNotificationContent()
-        content.title = "\(workout.name) " + NSLocalizedString("Done", comment: "")
-        content.body = NSLocalizedString("Great job! Keep pushing your limits!", comment: "")
+        content.title = title
+        content.body = body
         content.sound = .default
         
         let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
@@ -113,7 +120,7 @@ class WorkoutViewModel: ObservableObject {
         
         UNUserNotificationCenter.current().add(request) { error in
             if let error = error {
-                print("Error: \(error.localizedDescription)")
+                print("Error sending notification: \(error.localizedDescription)")
             }
         }
     }
@@ -142,6 +149,20 @@ class WorkoutViewModel: ObservableObject {
             return false
         }
         return Calendar.current.isDateInToday(lastCompletionDate)
+    }
+    
+    func startBackgroundTask() {
+        let taskIdentifier = UIApplication.shared.beginBackgroundTask(expirationHandler: {
+            self.endBackgroundTask()
+        })
+        
+        DispatchQueue.global().asyncAfter(deadline: .now() + Double(timeRemaining)) {
+            self.endBackgroundTask()
+        }
+    }
+    
+    func endBackgroundTask() {
+        UIApplication.shared.endBackgroundTask(UIApplication.shared.beginBackgroundTask(expirationHandler: nil))
     }
 }
 

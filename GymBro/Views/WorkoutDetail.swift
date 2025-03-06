@@ -41,78 +41,85 @@ struct WorkoutDetail: View {
                                 .fontWeight(.bold)
                         }
                     } else {
-                        VStack(alignment: .center, spacing: 20) {
-                            HStack {
-                                VStack(alignment: .leading) {
-                                    let minutes = viewModel.timeRemaining / 60
-                                    let seconds = viewModel.timeRemaining % 60
+                        if viewModel.isWorkoutToday {
+                            VStack(alignment: .center, spacing: 20) {
+                                HStack {
+                                    VStack(alignment: .leading) {
+                                        let minutes = viewModel.timeRemaining / 60
+                                        let seconds = viewModel.timeRemaining % 60
 
-                                    Text(String(format: "%02d:%02d", minutes, seconds))
-                                        .font(.system(size: 50))
-                                        .fontWeight(.semibold)
-                                        .foregroundStyle(colorScheme == .dark ? .white.opacity(0.6) : .primary)
-                                    Text(viewModel.currentPhase)
-                                        .foregroundStyle(colorScheme == .dark ? .white.opacity(0.6) : .primary)
-                                }
-                                
-                                Spacer()
-                                
-                                Button {
-                                    viewModel.isStarted.toggle()
-                                    if viewModel.isStarted {
-                                        viewModel.startTimer()
-                                    } else {
-                                        viewModel.stopTimer()
+                                        Text(String(format: "%02d:%02d", minutes, seconds))
+                                            .font(.system(size: 50))
+                                            .fontWeight(.semibold)
+                                            .foregroundStyle(colorScheme == .dark ? .white.opacity(0.6) : .primary)
+                                        Text(viewModel.currentPhase)
+                                            .foregroundStyle(colorScheme == .dark ? .white.opacity(0.6) : .primary)
                                     }
-                                } label: {
-                                    ZStack {
-                                        Circle()
-                                            .trim(from: 0.0, to: viewModel.progress)
-                                            .stroke(style: StrokeStyle(lineWidth: 6, lineCap: .round, lineJoin: .round))
-                                            .foregroundColor(viewModel.currentPhase == NSLocalizedString("Workout", comment: "Workout phase") ? (viewModel.isStarted ? .orange : .green) : .red)
-                                            .rotationEffect(.degrees(-90))
-                                            .animation(.linear(duration: 1), value: viewModel.progress)
-                                        
-                                        Image(systemName: viewModel.isStarted ? "pause" : "play.fill")
-                                            .resizable()
-                                            .frame(width: 30, height: 30, alignment: .center)
-                                            .foregroundStyle(viewModel.currentPhase == NSLocalizedString("Workout", comment: "Workout phase") ? (viewModel.isStarted ? .orange : .green) : .red)
+                                    
+                                    Spacer()
+                                    
+                                    Button {
+                                        viewModel.isStarted.toggle()
+                                        if viewModel.isStarted {
+                                            viewModel.startTimer()
+                                        } else {
+                                            viewModel.stopTimer()
+                                        }
+                                    } label: {
+                                        ZStack {
+                                            Circle()
+                                                .trim(from: 0.0, to: viewModel.progress)
+                                                .stroke(style: StrokeStyle(lineWidth: 6, lineCap: .round, lineJoin: .round))
+                                                .foregroundColor(viewModel.currentPhase == NSLocalizedString("Workout", comment: "Workout phase") ? (viewModel.isStarted ? .orange : .green) : .red)
+                                                .rotationEffect(.degrees(-90))
+                                                .animation(.linear(duration: 1), value: viewModel.progress)
+                                            
+                                            Image(systemName: viewModel.isStarted ? "pause" : "play.fill")
+                                                .resizable()
+                                                .frame(width: 30, height: 30, alignment: .center)
+                                                .foregroundStyle(viewModel.currentPhase == NSLocalizedString("Workout", comment: "Workout phase") ? (viewModel.isStarted ? .orange : .green) : .red)
+                                        }
                                     }
+                                    .frame(width: 100, height: 100)
                                 }
-                                .frame(width: 100, height: 100)
+                                .padding()
                             }
-                            .padding()
+                            
+                            Button {
+                                viewModel.skipPhase()
+                            } label: {
+                                Text(NSLocalizedString("Skip", comment: "Skip phase"))
+                                    .font(.system(size: 20))
+                                    .bold()
+                                    .foregroundStyle(.blue)
+                            }
+                        } else {
+                            Text(NSLocalizedString("This workout is not available for today.", comment: ""))
+                                .font(.title)
+                                .fontWeight(.bold)
+                                .foregroundStyle(colorScheme == .dark ? .white.opacity(0.6) : .primary)
                         }
-                        
-                        Button {
-                            viewModel.skipPhase()
-                        } label: {
-                            Text(NSLocalizedString("Skip", comment: "Skip phase"))
+                    }
+                    
+                    Spacer()
+                    
+                    HStack(alignment: .center) {
+                        VStack(alignment: .center){
+                            Text("\(viewModel.workout.steps)")
+                                .fontWeight(.semibold)
+                                .font(.system(size: 40))
+                            Text(NSLocalizedString("Reps", comment: "Repetitions"))
+                                .fontWeight(.semibold)
                                 .font(.system(size: 20))
-                                .bold()
-                                .foregroundStyle(.blue)
                         }
-                        
-                        Spacer()
-                        
-                        HStack(alignment: .center) {
-                            VStack(alignment: .center){
-                                Text("\(viewModel.workout.steps)")
-                                    .fontWeight(.semibold)
-                                    .font(.system(size: 40))
-                                Text(NSLocalizedString("Reps", comment: "Repetitions"))
-                                    .fontWeight(.semibold)
-                                    .font(.system(size: 20))
-                            }
-                            Text("X")
-                            VStack(alignment: .center){
-                                Text("\(viewModel.setsRemaining)")
-                                    .fontWeight(.semibold)
-                                    .font(.system(size: 40))
-                                Text(NSLocalizedString("Sets", comment: "Workout sets"))
-                                    .fontWeight(.semibold)
-                                    .font(.system(size: 20))
-                            }
+                        Text("X")
+                        VStack(alignment: .center){
+                            Text("\(viewModel.setsRemaining)")
+                                .fontWeight(.semibold)
+                                .font(.system(size: 40))
+                            Text(NSLocalizedString("Sets", comment: "Workout sets"))
+                                .fontWeight(.semibold)
+                                .font(.system(size: 20))
                         }
                     }
                     
@@ -190,4 +197,5 @@ struct WorkoutDetail: View {
         }
     }
 }
+
 

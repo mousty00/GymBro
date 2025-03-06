@@ -64,9 +64,6 @@
         }
       }
     },
-    "Apri Impostazioni" : {
-
-    },
     "Are you sure?" : {
 
     },
@@ -303,12 +300,6 @@
         }
       }
     },
-    "Minuti" : {
-
-    },
-    "Nessun percorso trovato o mappa non disponibile" : {
-
-    },
     "New Workout" : {
       "comment" : "New workout screen title",
       "localizations" : {
@@ -359,9 +350,6 @@
           }
         }
       }
-    },
-    "Per utilizzare questa funzionalità, abilita la localizzazione nelle impostazioni." : {
-
     },
     "Repeat" : {
       "extractionState" : "manual",
@@ -457,9 +445,6 @@
         }
       }
     },
-    "Seleziona il tempo di camminata (minuti):" : {
-
-    },
     "Sets" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -547,7 +532,7 @@
     "This action will delete the selected workout." : {
 
     },
-    "Trova percorso" : {
+    "This workout is not available for today." : {
 
     },
     "Type" : {
@@ -566,6 +551,9 @@
           }
         }
       }
+    },
+    "Work in Progress" : {
+
     },
     "Workout" : {
       "extractionState" : "manual",
