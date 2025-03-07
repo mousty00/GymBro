@@ -1,6 +1,7 @@
+
+
 import SwiftUI
 
-// Wrapper per bloccare l'orientamento
 struct OrientationLock: UIViewControllerRepresentable {
     let orientation: UIInterfaceOrientationMask
 
@@ -11,8 +12,7 @@ struct OrientationLock: UIViewControllerRepresentable {
 
     func updateUIViewController(_ uiViewController: UIViewController, context: Context) {
         if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
-            // Blocca l'orientamento in modalità verticale (portrait)
-            windowScene.requestGeometryUpdate(.iOS(interfaceOrientation: .portrait))
+            windowScene.requestGeometryUpdate(.iOS(interfaceOrientations: .portrait))
         }
     }
 }

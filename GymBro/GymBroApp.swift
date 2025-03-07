@@ -6,7 +6,6 @@ import CoreLocation
 @main
 struct GymBroApp: App {
     let container: ModelContainer
-    @StateObject private var locationManager = LocationManager()
 
     init() {
         do {
@@ -21,7 +20,6 @@ struct GymBroApp: App {
     var body: some Scene {
         WindowGroup {
             WelcomeView()
-                .environmentObject(locationManager)
         }
         .modelContainer(container)
     }

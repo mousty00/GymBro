@@ -152,7 +152,7 @@ class WorkoutViewModel: ObservableObject {
     }
     
     func startBackgroundTask() {
-        let taskIdentifier = UIApplication.shared.beginBackgroundTask(expirationHandler: {
+        _ = UIApplication.shared.beginBackgroundTask(expirationHandler: {
             self.endBackgroundTask()
         })
         

@@ -245,6 +245,9 @@
         }
       }
     },
+    "Enter walking time (minutes)" : {
+
+    },
     "Great job! Keep pushing your limits!" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -288,6 +291,9 @@
           }
         }
       }
+    },
+    "Location Error" : {
+
     },
     "Minutes" : {
       "extractionState" : "manual",
@@ -350,6 +356,9 @@
           }
         }
       }
+    },
+    "OK" : {
+
     },
     "Repeat" : {
       "extractionState" : "manual",
@@ -479,6 +488,9 @@
         }
       }
     },
+    "specify the desired walking duration:" : {
+
+    },
     "Start adding workouts to see your list." : {
       "localizations" : {
         "it" : {
@@ -552,6 +564,12 @@
         }
       }
     },
+    "Unknown error" : {
+
+    },
+    "Walk" : {
+
+    },
     "Work in Progress" : {
 
     },
@@ -568,17 +586,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Allenamento"
-          }
-        }
-      }
-    },
-    "Workout added successfully!" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Allenamento aggiunto"
           }
         }
       }
@@ -675,6 +682,9 @@
           }
         }
       }
+    },
+    "You are here" : {
+
     }
   },
   "version" : "1.0"

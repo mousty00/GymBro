@@ -28,6 +28,7 @@ struct TabNavigationView: View {
                 }
                 .frame(height: 56)
             }
+            .background(OrientationLock(orientation: .portrait))
         }
     }
 
