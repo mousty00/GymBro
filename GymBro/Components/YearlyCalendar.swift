@@ -5,7 +5,7 @@ struct YearlyCalendar: View {
     @Binding var selectedDate: Date
     @State private var currentMonth: Date = Date.today
     @State private var isFirstAppear = true
-    
+
     private var daysInMonth: [Date] {
         let calendar = Calendar.current
         let range = calendar.range(of: .day, in: .month, for: currentMonth) ?? 0..<0
@@ -45,61 +45,65 @@ struct YearlyCalendar: View {
             }
             .padding()
             
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 10) {
-                    ForEach(daysInMonth, id: \.self) { date in
-                        VStack {
-                            Text(shortDayName(for: date))
-                                .font(.caption)
-                                .foregroundColor(.gray)
-                            
-                            Button {
-                                selectedDate = date
-                            } label: {
-                                VStack {
-                                    Text(dayNumber(for: date))
-                                        .font(.title)
-                                        .fontWeight(selectedDate == date ? .bold : .regular)
-                                        .foregroundColor(
-                                            selectedDate == date
-                                            ? (date == Date.today
-                                                ? Color.white // if is today and is selected is white
-                                                : (colorScheme == .dark ? Color.black : Color.white))
-                                            : (date == Date.today ? Color.red : .primary) // if is not selected but is today is red
-                                        )
-                                        .frame(width: 40, height: 40, alignment: .center)
-                                        .background(
-                                            selectedDate == date
-                                            ? (colorScheme == .dark
-                                                ? (date == Date.today ? Color.red : Color.white)
-                                               : (date == Date.today ? Color.red : Color.black))
-                                            : Color.clear
-                                        )
-                                        .clipShape(Circle())
-                                    
-                                    Circle()
-                                        .fill()
-                                        .foregroundStyle(date == Date.today ? Color.red : Color.clear)
-                                        .frame(width: 5, height: 5)
-                                        .offset(y: -1)
+            ScrollViewReader { proxy in
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 10) {
+                        ForEach(daysInMonth, id: \.self) { date in
+                            VStack {
+                                Text(shortDayName(for: date))
+                                    .font(.caption)
+                                    .foregroundColor(.gray)
+                                
+                                Button {
+                                    selectedDate = date
+                                } label: {
+                                    VStack {
+                                        Text(dayNumber(for: date))
+                                            .font(.title)
+                                            .fontWeight(selectedDate == date ? .bold : .regular)
+                                            .foregroundColor(
+                                                selectedDate == date
+                                                ? (date == Date.today
+                                                    ? Color.white
+                                                    : (colorScheme == .dark ? Color.black : Color.white))
+                                                : (date == Date.today ? Color.red : .primary)
+                                            )
+                                            .frame(width: 40, height: 40, alignment: .center)
+                                            .background(
+                                                selectedDate == date
+                                                ? (colorScheme == .dark
+                                                    ? (date == Date.today ? Color.red : Color.white)
+                                                   : (date == Date.today ? Color.red : Color.black))
+                                                : Color.clear
+                                            )
+                                            .clipShape(Circle())
+                                        
+                                        Circle()
+                                            .fill()
+                                            .foregroundStyle(date == Date.today ? Color.red : Color.clear)
+                                            .frame(width: 5, height: 5)
+                                            .offset(y: -1)
+                                    }
                                 }
-
-
+                                .padding(10)
                             }
-                            .padding(10)
-                            
+                            .frame(width: 60)
+                            .id(date)
                         }
-                        .frame(width: 60)
+                    }
+                    .padding(.horizontal, 10)
+                }
+                .padding(.vertical, 5)
+                .onAppear {
+                    if isFirstAppear {
+                        isFirstAppear = false
+                        selectedDate = Date.today
+                        
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                            proxy.scrollTo(Date.today, anchor: .center)
+                        }
                     }
                 }
-                .padding(.horizontal, 10)
-            }
-            .padding(.vertical, 5)
-        }
-        .onAppear {
-            if isFirstAppear {
-                isFirstAppear = false
-                selectedDate = Date.today
             }
         }
     }
