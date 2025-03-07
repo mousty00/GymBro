@@ -42,7 +42,7 @@ struct MapView: View {
                             .foregroundColor(.white)
                             .padding()
                     }
-                    .background(Color.blue)
+                    .background(Color.pink)
                     .clipShape(Circle())
                     .shadow(color: Color.black.opacity(0.15), radius: 5, x: 0, y: 2)
                     .frame(width: 80, height: 80)
