@@ -25,5 +25,7 @@ struct TimePicker: View {
                 .pickerStyle(WheelPickerStyle())
             }
         }
+        .frame(maxHeight: 100)
     }
 }
+

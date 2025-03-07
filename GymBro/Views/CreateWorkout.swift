@@ -76,6 +76,7 @@ struct CreateWorkout: View {
                         .foregroundColor(.primary)
                 }
             }
+            .padding(.horizontal, 5)
             .toolbar {
                 ToolbarItemGroup(placement: .topBarLeading) {
                     Button(NSLocalizedString("Cancel", comment: "Cancel button")) { dismiss() }
