@@ -106,6 +106,11 @@ final class WalkingRouteViewModel: NSObject, ObservableObject, CLLocationManager
             }
         }
     }
+    
+    func resetRoute() {
+        self.route = nil
+    }
+
 
 }
 

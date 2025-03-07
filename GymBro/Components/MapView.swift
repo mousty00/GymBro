@@ -34,42 +34,39 @@ struct MapView: View {
                 Spacer()
                 HStack {
                     Spacer()
-                    Button(action: {
-                        showSheet.toggle()
-                    }) {
-                        Image(systemName: "figure.walk")
-                            .font(.largeTitle)
-                            .foregroundColor(.white)
-                            .padding()
-                    }
-                    .background(Color.pink)
-                    .clipShape(Circle())
-                    .shadow(color: Color.black.opacity(0.15), radius: 5, x: 0, y: 2)
-                    .frame(width: 80, height: 80)
-                    .padding()
-                    .sheet(isPresented: $showSheet) {
-                        WalkInput(walkingTime: $walkingTime, viewModel: viewModel)
+                    if viewModel.route != nil {
+                        CircleButton(image: "square.fill") {
+                            viewModel.resetRoute()
+                        }
+                    } else {
+                        
+                        CircleButton(image: "figure.walk") {
+                            DispatchQueue.main.async {
+                                showSheet.toggle()
+                            }
+                        }
+                        .sheet(isPresented: $showSheet) {
+                            WalkInput(walkingTime: $walkingTime, viewModel: viewModel)
+                        }
                     }
                 }
                 .frame(maxWidth: .infinity)
             }
-            
-                
-            }
-            .onAppear {
-                viewModel.checkIsLocationEnabled()
-            }
-            .onChange(of: viewModel.locationError) { newError, _ in
-                if newError != nil {
-                    showAlert = true
-                }
-            }
-            .alert(isPresented: $showAlert) {
-                Alert(title: Text(NSLocalizedString("Location Error", comment:"")), message: Text(viewModel.locationError ?? NSLocalizedString("Unknown error", comment: "")), dismissButton: .default(Text("OK")))
+        }
+        .onAppear {
+            viewModel.checkIsLocationEnabled()
+        }
+        .onChange(of: viewModel.locationError) { newError, _ in
+            if newError != nil {
+                showAlert = true
             }
         }
+        .alert(isPresented: $showAlert) {
+            Alert(title: Text(NSLocalizedString("Location Error", comment:"")), message: Text(viewModel.locationError ?? NSLocalizedString("Unknown error", comment: "")), dismissButton: .default(Text("OK")))
+        }
     }
-    
-    #Preview {
-        MapView()
-    }
+}
+
+#Preview {
+    MapView()
+}

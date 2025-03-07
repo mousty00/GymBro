@@ -42,7 +42,7 @@ struct WalkInput: View {
                         .padding()
                         .frame(minWidth: 120)
                         .background(.blue)
-                        .foregroundColor(.primary)
+                        .foregroundColor(.white)
                         .cornerRadius(12)
                         .shadow(color: Color.black.opacity(0.15), radius: 5, x: 0, y: 2)
                         .scaleEffect(isTextFieldFocused ? 1.05 : 1.0)
